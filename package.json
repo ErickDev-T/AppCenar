@@ -1,0 +1,31 @@
+{
+  "name": "appcenar",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/ErickDev-T/AppCenar#readme",
+  "bugs": {
+    "url": "https://github.com/ErickDev-T/AppCenar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ErickDev-T/AppCenar.git"
+  },
+  "license": "ISC",
+  "author": "Jean, Erick, Zorcis",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "qa": "cross-env NODE_ENV=qa nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-handlebars": "^8.0.7",
+    "mongoose": "^9.3.3",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.4",
+    "uuid": "^13.0.0"
+  }
+}
