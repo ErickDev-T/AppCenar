@@ -6,7 +6,6 @@ import { projectRoot } from "./utils/Paths.js";
 import { GetSection } from "./utils/helpers/Section.js";
 import { Equals } from "./utils/helpers/compare.js";
 import connectDB from "./utils/MongooseConnection.js";
-import authRouter from "./routes/auth.routes.js";
 import { attachAuthState } from "./middlewares/auth.middleware.js";
 import authRouter from "./routes/auth-router.js";
 import dashboardRouter from "./routes/dashboard-router.js";
