@@ -5,16 +5,18 @@ import CommerceType from "../models/CommerceTypeModel.js";
 import { Roles } from "../utils/enums/roles.js";
 import { sendEmail } from "../services/EmailServices.js";
 
+// normaliza texto y evita null
 function sanitizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
-
+// genera hash de password con salt
 function hashPassword(plainPassword) {
   const salt = randomBytes(16).toString("hex");
   const hashedPassword = scryptSync(plainPassword, salt, 64).toString("hex");
   return `${salt}:${hashedPassword}`;
 }
 
+// arma url base para enlaces de activacion
 function getBaseUrl(req) {
   const appUrl = sanitizeText(process.env.APP_URL);
   if (appUrl) {
@@ -24,6 +26,7 @@ function getBaseUrl(req) {
   return `${req.protocol}://${req.get("host")}`;
 }
 
+// render comun del formulario cliente o delivery
 function renderRegisterView(res, { formData, errors, statusCode = 200 }) {
   return res.status(statusCode).render("auth/register", {
     layout: "anonymous-layout",
@@ -33,6 +36,7 @@ function renderRegisterView(res, { formData, errors, statusCode = 200 }) {
   });
 }
 
+// elimina archivo subido cuando hay errores
 async function removeUploadedFile(filePath) {
   if (!filePath) return;
 
@@ -45,6 +49,7 @@ async function removeUploadedFile(filePath) {
   }
 }
 
+// render del login con mensajes opcionales
 export function renderLoginPage(req, res) {
   return res.render("auth/login", {
     layout: "anonymous-layout",
@@ -53,6 +58,8 @@ export function renderLoginPage(req, res) {
     activated: req.query.activated === "1"
   });
 }
+
+// render del formulario inicial de registro
 export function renderRegisterPage(req, res) {
   return renderRegisterView(res, {
     formData: {
@@ -67,6 +74,7 @@ export function renderRegisterPage(req, res) {
   });
 }
 
+// registro de cliente o delivery
 export async function register(req, res) {
   const formData = {
     name: sanitizeText(req.body.name),
@@ -81,6 +89,7 @@ export async function register(req, res) {
   const errors = [];
   const allowedRoles = [Roles.CLIENT, Roles.DELIVERY];
 
+  // validaciones basicas de campos
   if (!formData.name) errors.push("El nombre es obligatorio.");
   if (!formData.lastName) errors.push("El apellido es obligatorio.");
   if (!formData.username) errors.push("El username es obligatorio.");
@@ -106,6 +115,7 @@ export async function register(req, res) {
     errors.push("Las contrasenas no coinciden.");
   }
 
+  // si falla validacion, no sigue con db
   if (errors.length > 0) {
     await removeUploadedFile(req.file?.path);
     return renderRegisterView(res, { formData, errors, statusCode: 400 });
@@ -114,6 +124,7 @@ export async function register(req, res) {
   let createdUserId = null;
 
   try {
+    // valida unicidad de email y username
     const [emailAlreadyExists, usernameAlreadyExists] = await Promise.all([
       Users.exists({ email: formData.email }),
       Users.exists({ username: formData.username })
@@ -127,6 +138,7 @@ export async function register(req, res) {
       return renderRegisterView(res, { formData, errors, statusCode: 409 });
     }
 
+    // crea usuario inactivo y token de activacion
     const userPayload = {
       ...formData,
       password: hashPassword(password),
@@ -140,6 +152,7 @@ export async function register(req, res) {
     const createdUser = await Users.create(userPayload);
     createdUserId = createdUser._id;
 
+    // envia correo con link para activar cuenta
     const activationLink = `${getBaseUrl(req)}/user/activate/${userPayload.activateToken}`;
     await sendEmail({
       to: formData.email,
@@ -154,6 +167,7 @@ export async function register(req, res) {
 
     return res.redirect("/user/login?registered=1");
   } catch (ex) {
+    // maneja errores de duplicados por indice unico
     if (ex?.code === 11000) {
       const duplicateFields = Object.keys(ex.keyPattern ?? {});
 
@@ -172,6 +186,7 @@ export async function register(req, res) {
       return renderRegisterView(res, { formData, errors, statusCode: 409 });
     }
 
+    // rollback si se creo usuario pero fallo despues
     if (createdUserId) {
       try {
         await Users.findByIdAndDelete(createdUserId);
@@ -187,6 +202,7 @@ export async function register(req, res) {
   }
 }
 
+// activa cuenta usando token por url
 export async function activateAccount(req, res) {
   const token = sanitizeText(req.params.token);
 
@@ -213,6 +229,7 @@ export async function activateAccount(req, res) {
 }
 
 
+// render del formulario de registro de comercio
 export async function renderRegisterCommercePage(req, res) {
   return renderRegisterCommerceView(res, {
     formData: { nombre: "", telefono: "", correo: "", horaApertura: "", horaCierre: "", commerceType: "" },
@@ -220,6 +237,7 @@ export async function renderRegisterCommercePage(req, res) {
   });
 }
 
+// render comun del formulario de comercio
 async function renderRegisterCommerceView(res, { formData, errors, statusCode = 200 }) {
   const commerceTypes = await CommerceType.find().lean();
   return res.status(statusCode).render("auth/register-commerce", {
@@ -231,6 +249,7 @@ async function renderRegisterCommerceView(res, { formData, errors, statusCode = 
   });
 }
 
+// registro de comercio
 export async function registerCommerce(req, res) {
   const formData = {
     nombre: sanitizeText(req.body.nombre),
@@ -244,6 +263,7 @@ export async function registerCommerce(req, res) {
   const confirmPassword = typeof req.body.confirmPassword === "string" ? req.body.confirmPassword : "";
   const errors = [];
 
+  // validaciones basicas del formulario
   if (!formData.nombre) errors.push("El nombre del comercio es obligatorio.");
   if (!formData.telefono) errors.push("El telefono es obligatorio.");
   if (!formData.correo) errors.push("El correo es obligatorio.");
@@ -260,6 +280,7 @@ export async function registerCommerce(req, res) {
   if (password && password.length < 8) errors.push("La contrasena debe tener al menos 8 caracteres.");
   if (password && confirmPassword && password !== confirmPassword) errors.push("Las contrasenas no coinciden.");
 
+  // si falla validacion, regresa con errores
   if (errors.length > 0) {
     await removeUploadedFile(req.file?.path);
     return renderRegisterCommerceView(res, { formData, errors, statusCode: 400 });
@@ -268,6 +289,7 @@ export async function registerCommerce(req, res) {
   let createdUserId = null;
 
   try {
+    // valida tipo de comercio y correo unico
     const [commerceType, emailAlreadyExists] = await Promise.all([
       CommerceType.exists({ _id: formData.commerceType }),
       Users.exists({ email: formData.correo })
@@ -281,6 +303,7 @@ export async function registerCommerce(req, res) {
       return renderRegisterCommerceView(res, { formData, errors, statusCode: 409 });
     }
 
+    // crea cuenta de comercio inactiva
     const activateToken = randomBytes(32).toString("hex");
     
     const createdUser = await Users.create({
@@ -299,6 +322,7 @@ export async function registerCommerce(req, res) {
 
     createdUserId = createdUser._id;
 
+    // envia correo de activacion
     const activationLink = `${getBaseUrl(req)}/user/activate/${activateToken}`;
     await sendEmail({
       to: formData.correo,
@@ -313,6 +337,7 @@ export async function registerCommerce(req, res) {
 
     return res.redirect("/user/login?registered=1");
   } catch (ex) {
+    // maneja duplicados de email en mongo
     if (ex?.code === 11000) {
       const duplicateFields = Object.keys(ex.keyPattern ?? {});
       if (duplicateFields.includes("email")) errors.push("Ya existe una cuenta con ese correo.");
@@ -321,6 +346,7 @@ export async function registerCommerce(req, res) {
       return renderRegisterCommerceView(res, { formData, errors, statusCode: 409 });
     }
 
+    // rollback si se creo usuario y luego fallo
     if (createdUserId) {
       try { await Users.findByIdAndDelete(createdUserId); } catch (deleteError) {
         console.error("Error cleaning failed commerce registration", deleteError);
