@@ -6,8 +6,8 @@ import { projectRoot } from "./utils/Paths.js";
 import { GetSection } from "./utils/helpers/Section.js";
 import { Equals } from "./utils/helpers/compare.js";
 import connectDB from "./utils/MongooseConnection.js";
-import multer from "multer";
-import { v4 as guidV4 } from "uuid";
+import authRouter from "./routes/auth.routes.js";
+import { attachAuthState } from "./middlewares/auth.middleware.js";
 
 const app = express();
 app.engine("hbs", engine({
@@ -19,23 +19,16 @@ app.engine("hbs", engine({
         eq: Equals
     }
 }));
+
 app.set("view engine", "hbs");
 app.set("views", "views");
 
 app.use(express.static(path.join(projectRoot, "public")));
 app.use(express.urlencoded());
+app.use(express.json());
+app.use(attachAuthState);
 
-const imageStorageForCoverImageBooks = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(projectRoot, "public", "Images", "profileImages" ));
-    },
-    filename: (req,file,cb) => {
-        const fileName = `${guidV4()}-${file.originalname}`;
-        cb(null, fileName)
-    }
-});
-
-app.use(multer({ storage: imageStorageForCoverImageBooks}).single("coverImage"))
+app.use("/user", authRouter);
 
 app.use((req, res) => {
 
@@ -52,7 +45,7 @@ try {
  
   await connectDB();
   app.listen(process.env.PORT || 5000);
-  console.log(`Server is running on port ${process.env.PORT || 5000}`);
+  console.log(`Server corriento en el puerto ${process.env.PORT || 5000}`);
 } catch (ex) {
-  console.error("Error setting up the application:", ex);
+  console.error("Error:", ex);
 }
