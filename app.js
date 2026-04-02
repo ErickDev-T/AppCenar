@@ -8,6 +8,9 @@ import { Equals } from "./utils/helpers/compare.js";
 import connectDB from "./utils/MongooseConnection.js";
 import multer from "multer";
 import { v4 as guidV4 } from "uuid";
+import authRouter from "./routes/auth-router.js";
+import { sendEmail } from "./services/EmailServices.js";
+import dashboardRouter from "./routes/dashboard-router.js";
 
 const app = express();
 app.engine("hbs", engine({
@@ -36,6 +39,10 @@ const imageStorageForCoverImageBooks = multer.diskStorage({
 });
 
 app.use(multer({ storage: imageStorageForCoverImageBooks}).single("coverImage"))
+
+app.use("/auth", authRouter);
+app.use("/dashboard", dashboardRouter);
+
 
 app.use((req, res) => {
 

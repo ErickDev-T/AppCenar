@@ -1,0 +1,82 @@
+<div class="row mt-4">
+  <div class="col-md-3"></div>
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+
+      <div class="card-header bg-primary text-light">
+        <h5 class="text-center mb-0"><i class="bi bi-person-plus"></i> Crear cuenta – Cliente / Delivery</h5>
+      </div>
+
+      <div class="card-body">
+
+        {{#if error}}
+          <div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle"></i> {{error}}</div>
+        {{/if}}
+
+        {{#if success}}
+          <div class="alert alert-success py-2"><i class="bi bi-envelope-check"></i> {{success}}</div>
+        {{/if}}
+
+        <form action="/auth/register" method="POST" enctype="multipart/form-data">
+
+          <div class="row mb-3">
+            <div class="col-6">
+              <label for="nombre" class="form-label">Nombre:</label>
+              <input type="text" class="form-control" id="nombre" name="nombre" required />
+            </div>
+            <div class="col-6">
+              <label for="apellido" class="form-label">Apellido:</label>
+              <input type="text" class="form-control" id="apellido" name="apellido" required />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="telefono" class="form-label">Teléfono:</label>
+            <input type="tel" class="form-control" id="telefono" name="telefono" placeholder="809-000-0000" required />
+          </div>
+
+          <div class="mb-3">
+            <label for="correo" class="form-label">Correo electrónico:</label>
+            <input type="email" class="form-control" id="correo" name="correo" required />
+          </div>
+
+          <div class="mb-3">
+            <label for="foto" class="form-label">Foto de perfil: <span class="text-muted small">(opcional)</span></label>
+            <input type="file" class="form-control" id="foto" name="foto" accept="image/*" />
+          </div>
+
+          <div class="mb-3">
+            <label for="username" class="form-label">Nombre de usuario:</label>
+            <input type="text" class="form-control" id="username" name="username" required />
+          </div>
+
+          <div class="mb-3">
+            <label for="rol" class="form-label">Registrarse como:</label>
+            <select class="form-select" id="rol" name="rol" required>
+              <option value="">-- Seleccionar rol --</option>
+              <option value="cliente">Cliente</option>
+              <option value="delivery">Delivery</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña:</label>
+            <input type="password" class="form-control" id="password" name="password" required />
+          </div>
+
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirmar contraseña:</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required />
+          </div>
+
+          <div>
+            <button type="submit" class="btn btn-primary float-end"><i class="bi bi-floppy"></i> Crear cuenta</button>
+            <a href="/auth/login" class="btn btn-warning float-end me-2"><i class="bi bi-arrow-left"></i> Volver</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3"></div>
+</div>
