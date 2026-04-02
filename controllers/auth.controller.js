@@ -1,6 +1,7 @@
 import { randomBytes, scryptSync } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import Users from "../models/UserModel.js";
+import CommerceType from "../models/CommerceTypeModel.js";
 import { Roles } from "../utils/enums/roles.js";
 import { sendEmail } from "../services/EmailServices.js";
 
@@ -45,33 +46,13 @@ async function removeUploadedFile(filePath) {
 }
 
 export function renderLoginPage(req, res) {
-  const registeredMessage =
-    req.query.registered === "1"
-      ? "<p style=\"color: green;\">Cuenta creada inactiva. Revisa tu correo para activar la cuenta.</p>"
-      : "";
-  const activatedMessage =
-    req.query.activated === "1"
-      ? "<p style=\"color: green;\">Cuenta activada correctamente. Ya puedes iniciar sesion.</p>"
-      : "";
-
-  res.status(200).send(`
-    <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Login</title>
-      </head>
-      <body style="font-family: Arial, sans-serif; padding: 24px;">
-        <h1>Login</h1>
-        ${registeredMessage}
-        ${activatedMessage}
-        <p>aun no hecha </p>
-        <a href="/user/register">Ir a registro</a>
-      </body>
-    </html>
-  `);
+  return res.render("auth/login", {
+    layout: "anonymous-layout",
+    "page-title": "Login",
+    registered: req.query.registered === "1",
+    activated: req.query.activated === "1"
+  });
 }
-
 export function renderRegisterPage(req, res) {
   return renderRegisterView(res, {
     formData: {
@@ -231,11 +212,126 @@ export async function activateAccount(req, res) {
   }
 }
 
-export function login(req, res) {
-  res.status(501).json({
-    ok: false,
-    message: "falta Login"
+
+export async function renderRegisterCommercePage(req, res) {
+  return renderRegisterCommerceView(res, {
+    formData: { nombre: "", telefono: "", correo: "", horaApertura: "", horaCierre: "", commerceType: "" },
+    errors: []
   });
+}
+
+async function renderRegisterCommerceView(res, { formData, errors, statusCode = 200 }) {
+  const commerceTypes = await CommerceType.find().lean();
+  return res.status(statusCode).render("auth/register-commerce", {
+    layout: "anonymous-layout",
+    "page-title": "Registrar comercio",
+    formData,
+    errors,
+    commerceTypes
+  });
+}
+
+export async function registerCommerce(req, res) {
+  const formData = {
+    nombre: sanitizeText(req.body.nombre),
+    telefono: sanitizeText(req.body.telefono),
+    correo: sanitizeText(req.body.correo).toLowerCase(),
+    horaApertura: sanitizeText(req.body.horaApertura),
+    horaCierre: sanitizeText(req.body.horaCierre),
+    tipoComercio: sanitizeText(req.body.tipoComercio)
+  };
+  const password = typeof req.body.password === "string" ? req.body.password : "";
+  const confirmPassword = typeof req.body.confirmPassword === "string" ? req.body.confirmPassword : "";
+  const errors = [];
+
+  if (!formData.nombre) errors.push("El nombre del comercio es obligatorio.");
+  if (!formData.telefono) errors.push("El telefono es obligatorio.");
+  if (!formData.correo) errors.push("El correo es obligatorio.");
+  if (!formData.horaApertura) errors.push("La hora de apertura es obligatoria.");
+  if (!formData.horaCierre) errors.push("La hora de cierre es obligatoria.");
+  if (!formData.tipoComercio) errors.push("Debes seleccionar un tipo de comercio.");
+  if (!password) errors.push("La contrasena es obligatoria.");
+  if (!confirmPassword) errors.push("Debes confirmar la contrasena.");
+  if (!req.file?.filename) errors.push("El logo del comercio es obligatorio.");
+
+  if (formData.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) {
+    errors.push("El correo no tiene un formato valido.");
+  }
+  if (password && password.length < 8) errors.push("La contrasena debe tener al menos 8 caracteres.");
+  if (password && confirmPassword && password !== confirmPassword) errors.push("Las contrasenas no coinciden.");
+
+  if (errors.length > 0) {
+    await removeUploadedFile(req.file?.path);
+    return renderRegisterCommerceView(res, { formData, errors, statusCode: 400 });
+  }
+
+  let createdUserId = null;
+
+  try {
+    const [commerceType, emailAlreadyExists] = await Promise.all([
+      CommerceType.exists({ _id: formData.commerceType }),
+      Users.exists({ email: formData.correo })
+    ]);
+
+    if (!commerceType) errors.push("El tipo de comercio seleccionado no es valido.");
+    if (emailAlreadyExists) errors.push("Ya existe una cuenta con ese correo.");
+
+    if (errors.length > 0) {
+      await removeUploadedFile(req.file?.path);
+      return renderRegisterCommerceView(res, { formData, errors, statusCode: 409 });
+    }
+
+    const activateToken = randomBytes(32).toString("hex");
+    
+    const createdUser = await Users.create({
+      name: formData.nombre,
+      email: formData.correo,
+      phone: formData.telefono,
+      openingTime: formData.horaApertura,
+      closingTime: formData.horaCierre,
+      commerceType: formData.tipoComercio,
+      profileImage: req.file.filename,
+      password: hashPassword(password),
+      role: Roles.COMMERCE,
+      isActive: false,
+      activateToken
+    });
+
+    createdUserId = createdUser._id;
+
+    const activationLink = `${getBaseUrl(req)}/user/activate/${activateToken}`;
+    await sendEmail({
+      to: formData.correo,
+      subject: "Activa tu comercio en AppCenar",
+      html: `
+        <h2>Hola, ${formData.nombre}</h2>
+        <p>Tu comercio fue registrado correctamente y esta inactivo.</p>
+        <p>Para activarlo, haz click en el siguiente enlace:</p>
+        <p><a href="${activationLink}">Activar comercio</a></p>
+      `
+    });
+
+    return res.redirect("/user/login?registered=1");
+  } catch (ex) {
+    if (ex?.code === 11000) {
+      const duplicateFields = Object.keys(ex.keyPattern ?? {});
+      if (duplicateFields.includes("email")) errors.push("Ya existe una cuenta con ese correo.");
+      if (errors.length === 0) errors.push("No se pudo crear el comercio por datos duplicados.");
+      await removeUploadedFile(req.file?.path);
+      return renderRegisterCommerceView(res, { formData, errors, statusCode: 409 });
+    }
+
+    if (createdUserId) {
+      try { await Users.findByIdAndDelete(createdUserId); } catch (deleteError) {
+        console.error("Error cleaning failed commerce registration", deleteError);
+      }
+    }
+
+    await removeUploadedFile(req.file?.path);
+    console.error("Error creating commerce", ex);
+    errors.push("No se pudo completar el registro o enviar el correo de activacion.");
+    return renderRegisterCommerceView(res, { formData, errors, statusCode: 500 });
+  }
 }
 
 export function logout(req, res) {

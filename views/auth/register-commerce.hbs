@@ -1,0 +1,102 @@
+<div class="row justify-content-center mt-4">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+        <div class="card shadow-sm border rounded-3">
+
+            <div class="card-header bg-success text-white text-center py-2">
+                <h1 class="h4 mb-0">
+                    <i class="bi bi-shop-window me-2"></i>Registrar comercio
+                </h1>
+            </div>
+
+            <div class="card-body p-3 p-md-4">
+                <p class="text-muted mb-3 small">Completa el formulario para registrar tu comercio</p>
+
+                {{#if errors.length}}
+                <div class="alert alert-danger py-2" role="alert">
+                    <ul class="mb-0 small">
+                        {{#each errors}}
+                        <li>{{this}}</li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/if}}
+
+                <form action="/auth/register-commerce" method="POST" enctype="multipart/form-data" novalidate>
+                    <div class="row g-2">
+
+                        <div class="col-12">
+                            <label for="nombre" class="form-label mb-1">Nombre del comercio</label>
+                            <input id="nombre" name="nombre" type="text" class="form-control"
+                                value="{{formData.nombre}}" required />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="telefono" class="form-label mb-1">Teléfono</label>
+                            <input id="telefono" name="telefono" type="text" class="form-control"
+                                value="{{formData.telefono}}" placeholder="809-000-0000" required />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="correo" class="form-label mb-1">Correo</label>
+                            <input id="correo" name="correo" type="email" class="form-control"
+                                value="{{formData.correo}}" required />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="horaApertura" class="form-label mb-1">Hora de apertura</label>
+                            <input id="horaApertura" name="horaApertura" type="time" class="form-control"
+                                value="{{formData.horaApertura}}" required />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="horaCierre" class="form-label mb-1">Hora de cierre</label>
+                            <input id="horaCierre" name="horaCierre" type="time" class="form-control"
+                                value="{{formData.horaCierre}}" required />
+                        </div>
+
+                        <div class="col-12">
+                            <label for="tipoComercio" class="form-label mb-1">Tipo de comercio</label>
+                            <select id="tipoComercio" name="tipoComercio" class="form-select" required>
+                                <option value="">Selecciona un tipo</option>
+                                {{#each tiposComercio}}
+                                <option value="{{this._id}}" {{#if (eq ../formData.tipoComercio
+                                    this._id)}}selected{{/if}}>{{this.nombre}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="logo" class="form-label mb-1">Logo del comercio</label>
+                            <input id="logo" name="logo" type="file" class="form-control" accept="image/*" required />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="password" class="form-label mb-1">Contraseña</label>
+                            <input id="password" name="password" type="password" class="form-control" minlength="8"
+                                required />
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="confirmPassword" class="form-label mb-1">Confirmar contraseña</label>
+                            <input id="confirmPassword" name="confirmPassword" type="password" class="form-control"
+                                minlength="8" required />
+                        </div>
+
+                    </div>
+
+                    <div class="my-3"></div>
+
+                    <div class="d-flex justify-content-between gap-2">
+                        <a href="/auth/login" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Volver al login
+                        </a>
+                        <button type="submit" class="btn btn-success btn-sm px-3">
+                            <i class="bi bi-floppy me-1"></i>Registrar comercio
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

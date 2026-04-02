@@ -18,7 +18,7 @@ export function requireAuth(req, res, next) {
 }
 
 // si ya inició sesión lo manda al inicio
-// si no ha iniciado sesión  continuaa
+// si no ha iniciado sesión continua
 export function requireGuest(req, res, next) {
   if (req.session?.user) {
     return res.redirect("/");

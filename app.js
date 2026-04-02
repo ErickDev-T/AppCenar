@@ -7,8 +7,8 @@ import { GetSection } from "./utils/helpers/Section.js";
 import { Equals } from "./utils/helpers/compare.js";
 import connectDB from "./utils/MongooseConnection.js";
 import { attachAuthState } from "./middlewares/auth.middleware.js";
-import authRouter from "./routes/auth-router.js";
 import dashboardRouter from "./routes/dashboard-router.js";
+import authRouter from "./routes/auth.routes.js";
 
 const app = express();
 app.engine("hbs", engine({
@@ -30,8 +30,6 @@ app.use(express.json());
 app.use(attachAuthState);
 
 app.use("/user", authRouter);
-
-app.use("/auth", authRouter);
 app.use("/dashboard", dashboardRouter);
 
 
