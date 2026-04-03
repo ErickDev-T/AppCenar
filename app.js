@@ -1,5 +1,7 @@
 import "./utils/LoadEnvConfig.js";
 import express from "express";
+import session from "express-session";
+import flash from "connect-flash";
 import { engine } from "express-handlebars";
 import path from "path";
 import { projectRoot } from "./utils/Paths.js";
@@ -27,14 +29,24 @@ app.set("views", "views");
 app.use(express.static(path.join(projectRoot, "public")));
 app.use(express.urlencoded());
 app.use(express.json());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(flash());
 app.use(attachAuthState);
 
 app.use("/user", authRouter);
+app.use("/", authRouter);
 app.use("/dashboard", dashboardRouter);
 
 
 app.use((req, res) => {
-
 
     res.status(404).render("404",
         {

@@ -4,6 +4,91 @@ import Users from "../models/UserModel.js";
 import CommerceType from "../models/CommerceTypeModel.js";
 import { Roles } from "../utils/enums/roles.js";
 import { sendEmail } from "../services/EmailServices.js";
+import bcypt from "bcrypt";
+
+
+// render del login con mensajes opcionales
+export function renderLoginPage(req, res) {
+
+  const errors = req.flash("errors");
+
+  return res.render("auth/login", {
+    layout: "anonymous-layout",
+    "page-title": "Login",
+    registered: req.query.registered === "1",
+    activated: req.query.activated === "1",
+    errors,
+    hasErrors: errors.length > 0
+  });
+}
+
+export async function login(req, res) {
+
+  const { identifier, password } = req.body
+
+  try {
+    //si el usuario no existe, retorna el login con mensaje de error 
+    //el usuario se obtiene por email o username, se normaliza para evitar problemas de espacios o mayusculas
+
+    const normalizedIdentifier = (identifier || "").trim().toLowerCase();
+
+    const user = await Users.findOne({
+      $or: [
+        { email: normalizedIdentifier },
+        { username: normalizedIdentifier }
+      ]
+    });
+
+
+    if (!user) {
+      req.flash("errors", "invalid credentials.");
+      return res.redirect("/user/login");
+    }
+    //si existe pero no esta activo, retorna el login con mensaje de error
+    if (!user.isActive) {
+      req.flash("errors", "account is not active. Please check your email for activation instructions.");
+      return res.redirect("/user/login");
+    }
+
+    //si existe y esta activo, compara password,si no coincide, retorna el login con mensaje de error
+    const isPasswordValid = await bcypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      req.flash("errors", "invalid password.");
+      return res.redirect("/user/login");
+    }
+
+    //si todo es correcto, guarda el estado de autenticacion en la session y redirige segun rol
+
+    req.session.user = user;
+    req.session.isAuthenticated = true;
+
+    req.session.save((ex) => {
+      if (ex) {
+        console.error("Error saving session after login", ex);
+        return res.redirect("/user/login");
+      }
+
+      switch (user.role) {
+        case Roles.CLIENT:
+          return res.redirect("/dashboard/client");
+        case Roles.DELIVERY:
+          return res.redirect("/dashboard/delivery");
+        case Roles.COMMERCE:
+          return res.redirect("/dashboard/commerce");
+        case Roles.ADMIN:
+          return res.redirect("/dashboard/admin");
+        default:
+          req.flash("errors", "user role is not recognized.");
+          return res.redirect("/user/login");
+      }
+    });
+
+  } catch (ex) {
+    console.error("Error during login", ex);
+    req.flash("errors", "internal error during login");
+    return res.redirect("/user/login");
+  }
+}
 
 // normaliza texto y evita null
 function sanitizeText(value) {
@@ -47,16 +132,6 @@ async function removeUploadedFile(filePath) {
       console.error("Error deleting uploaded file", ex);
     }
   }
-}
-
-// render del login con mensajes opcionales
-export function renderLoginPage(req, res) {
-  return res.render("auth/login", {
-    layout: "anonymous-layout",
-    "page-title": "Login",
-    registered: req.query.registered === "1",
-    activated: req.query.activated === "1"
-  });
 }
 
 // render del formulario inicial de registro
@@ -305,7 +380,7 @@ export async function registerCommerce(req, res) {
 
     // crea cuenta de comercio inactiva
     const activateToken = randomBytes(32).toString("hex");
-    
+
     const createdUser = await Users.create({
       name: formData.nombre,
       email: formData.correo,

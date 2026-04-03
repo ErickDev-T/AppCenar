@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   activateAccount,
   logout,
+  login,
   register,
   renderLoginPage,
   renderRegisterPage,
@@ -15,6 +16,7 @@ import { uploadProfileImage } from "../middlewares/upload.middleware.js";
 const authRouter = Router();
 
 authRouter.get("/login", requireGuest, renderLoginPage);
+authRouter.post("/login", requireGuest, login);
 authRouter.get("/register", requireGuest, renderRegisterPage);
 authRouter.get("/activate/:token", activateAccount);
 authRouter.get("/register-commerce", requireGuest, renderRegisterCommercePage);
