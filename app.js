@@ -59,8 +59,8 @@ app.use((req, res) => {
 try {
  
   await connectDB();
-  app.listen(process.env.PORT || 5000);
-  console.log(`Server corriento en el puerto ${process.env.PORT || 5000}`);
+  app.listen(process.env.PORT || 3000);
+  console.log(`Server corriento en el puerto ${process.env.PORT || 3000}`);
 } catch (ex) {
   console.error("Error:", ex);
 }
