@@ -5,10 +5,12 @@ import {
   login,
   register,
   renderLoginPage,
-  renderRegisterPage,
+  renderRegisterPage
+} from "../controllers/auth.controller.js";
+import {
   registerCommerce,
   renderRegisterCommercePage
-} from "../controllers/auth.controller.js";
+} from "../controllers/auth.controller.register.js";
 import { requireGuest } from "../middlewares/auth.middleware.js";
 
 import { uploadProfileImage } from "../middlewares/upload.middleware.js";
