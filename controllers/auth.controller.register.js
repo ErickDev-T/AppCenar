@@ -100,13 +100,16 @@ export async function registerCommerce(req, res) {
 
   try {
     // valida tipo de comercio y correo unico
-    const [commerceType, emailAlreadyExists] = await Promise.all([
+    const [commerceType, emailAlreadyExistsInUsers, emailAlreadyExistsInCommerces] = await Promise.all([
       CommerceType.exists({ _id: formData.tipoComercio }),
-      Users.exists({ email: formData.correo })
+      Users.exists({ email: formData.correo }),
+      Commerce.exists({ email: formData.correo })
     ]);
 
     if (!commerceType) errors.push("El tipo de comercio seleccionado no es valido.");
-    if (emailAlreadyExists) errors.push("Ya existe una cuenta con ese correo.");
+    if (emailAlreadyExistsInUsers || emailAlreadyExistsInCommerces) {
+      errors.push("Ya existe una cuenta con ese correo.");
+    }
 
     if (errors.length > 0) {
       await removeUploadedFile(req.file?.path);
@@ -167,7 +170,7 @@ export async function registerCommerce(req, res) {
     // rollback si se creo usuario y luego fallo
     if (createdUserId) {
       try {
-        await Users.findByIdAndDelete(createdUserId);
+        await Commerce.findByIdAndDelete(createdUserId);
       } catch (deleteError) {
         console.error("Error cleaning failed commerce registration", deleteError);
       }

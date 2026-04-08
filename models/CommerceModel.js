@@ -63,7 +63,7 @@ const commerceSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  collection: "Users"
+  collection: "Commerces"
 });
 
 commerceSchema.pre("validate", function () {

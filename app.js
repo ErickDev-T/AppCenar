@@ -11,6 +11,7 @@ import connectDB from "./utils/MongooseConnection.js";
 import { attachAuthState } from "./middlewares/auth.middleware.js";
 import dashboardRouter from "./routes/dashboard-router.js";
 import authRouter from "./routes/auth.routes.js";
+import clientRouter from "./routes/client.routes.js";
 
 const app = express();
 app.engine("hbs", engine({
@@ -42,6 +43,7 @@ app.use(flash());
 app.use(attachAuthState);
 
 app.use("/user", authRouter);
+app.use("/client", clientRouter);
 app.use("/", dashboardRouter);
 
 
