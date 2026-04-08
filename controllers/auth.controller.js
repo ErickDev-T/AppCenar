@@ -73,7 +73,7 @@ export async function login(req, res) {
         case Roles.DELIVERY:
           return res.redirect("/delivery");
         case Roles.COMMERCE:
-          return res.redirect("/commerce");
+          return res.redirect("/commerce/dashboard");
         case Roles.ADMIN:
           return res.redirect("/admin");
         default:
@@ -323,8 +323,16 @@ export async function activateAccount(req, res) {
 }
 
 export function logout(req, res) {
-  res.status(501).json({
-    ok: false,
-    message: "falta Logout "
+  if (!req.session) {
+    return res.redirect("/user/login");
+  }
+
+  req.session.destroy((ex) => {
+    if (ex) {
+      console.error("Error closing session", ex);
+    }
+
+    res.clearCookie("connect.sid");
+    return res.redirect("/user/login");
   });
 }

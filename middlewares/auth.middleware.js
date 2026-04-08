@@ -39,7 +39,7 @@ function resolveDashboardPathByRole(role) {
     case Roles.DELIVERY:
       return "/delivery";
     case Roles.COMMERCE:
-      return "/commerce";
+      return "/commerce/dashboard";
     case Roles.ADMIN:
       return "/admin";
     default:
