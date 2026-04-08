@@ -71,7 +71,7 @@ export async function login(req, res) {
         case Roles.CLIENT:
           return res.redirect("/client/dashboard");
         case Roles.DELIVERY:
-          return res.redirect("/delivery");
+          return res.redirect("/delivery/dashboard");
         case Roles.COMMERCE:
           return res.redirect("/commerce/dashboard");
         case Roles.ADMIN:

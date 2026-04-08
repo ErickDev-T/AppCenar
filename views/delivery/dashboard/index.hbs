@@ -1,0 +1,9 @@
+<section class="py-3">
+  <h1 class="h4 mb-3">Home del delivery</h1>
+  {{#if user}}
+    <p class="mb-1"><strong>Correo:</strong> {{user.email}}</p>
+    <p class="mb-0"><strong>Rol:</strong> {{user.role}}</p>
+  {{else}}
+    <p class="mb-0">No hay sesion activa.</p>
+  {{/if}}
+</section>

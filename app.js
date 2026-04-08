@@ -13,6 +13,7 @@ import dashboardRouter from "./routes/dashboard-router.js";
 import authRouter from "./routes/auth.routes.js";
 import clientRouter from "./routes/client.routes.js";
 import commerceRouter from "./routes/commerce.routes.js";
+import deliveryRouter from "./routes/delivery.routes.js";
 
 const app = express();
 app.engine("hbs", engine({
@@ -46,6 +47,7 @@ app.use(attachAuthState);
 app.use("/user", authRouter);
 app.use("/client", clientRouter);
 app.use("/commerce", commerceRouter);
+app.use("/delivery", deliveryRouter);
 app.use("/", dashboardRouter);
 
 
