@@ -1,4 +1,4 @@
 export function getDashboard(req, res) {
   const user = req.user;
-  res.render("dashboard", { "title": "Dashboard"});
+  res.render("Auth/Login", { "title": "Login"});
 }

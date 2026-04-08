@@ -70,13 +70,13 @@ export async function login(req, res) {
 
       switch (user.role) {
         case Roles.CLIENT:
-          return res.redirect("/dashboard/client");
+          return res.redirect("/client/dashboard/index");
         case Roles.DELIVERY:
-          return res.redirect("/dashboard/delivery");
+          return res.redirect("/delivery/dashboard/index");
         case Roles.COMMERCE:
-          return res.redirect("/dashboard/commerce");
+          return res.redirect("/commerce/dashboard/index");
         case Roles.ADMIN:
-          return res.redirect("/dashboard/admin");
+          return res.redirect("/admin/dashboard/index");
         default:
           req.flash("errors", "user role is not recognized.");
           return res.redirect("/user/login");

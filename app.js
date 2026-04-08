@@ -42,8 +42,7 @@ app.use(flash());
 app.use(attachAuthState);
 
 app.use("/user", authRouter);
-app.use("/", authRouter);
-app.use("/dashboard", dashboardRouter);
+app.use("/", dashboardRouter);
 
 
 app.use((req, res) => {
