@@ -7,7 +7,7 @@ export async function getConfigurations(req, res, next) {
     const result = await Configuration.find({});
     const configurations = result || [];
 
-    res.render("configuration/home", {
+    res.render("/configuration", {
       configurationList: configurations,
       hasconfiguration: configurations.length > 0,
       "page-title": "Configuration Home",
