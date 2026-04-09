@@ -1,4 +1,4 @@
-import CommerceType from "../models/CommerceTypeModel";
+import CommerceType from "../models/CommerceTypeModel.js";
 
 //#region GET
 
