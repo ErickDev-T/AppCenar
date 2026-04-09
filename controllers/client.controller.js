@@ -14,8 +14,19 @@ export function getProfile(req, res) {
   return res.render("client/profile", getClientViewModel(req, "Mi perfil"));
 }
 
-export function getOrders(req, res) {
-  return res.render("client/orders", getClientViewModel(req, "Mis pedidos"));
+export async function getOrders(req, res) {
+  try {
+    const orders = await getOrdersByClient(req.session.user.id);
+
+    return res.render("client/orders", {
+      ...getClientViewModel(req, "Mis pedidos"),
+      ordersList: orders,
+      hasOrders: orders.length > 0,
+    });
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    req.flash("errors", "Error fetching orders");
+  }
 }
 
 export function getAddresses(req, res) {
