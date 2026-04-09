@@ -9,13 +9,13 @@ const orderSchema = new mongoose.Schema(
     },
     commerceId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Users",
+      ref: "Commerce",
       required: true,
     },
     deliveryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Users",
-      default: null,
+      ref: "Delivery",
+      required: true,
     },
     addressId: {
       type: mongoose.Schema.Types.ObjectId,

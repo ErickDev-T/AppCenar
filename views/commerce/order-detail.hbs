@@ -1,0 +1,151 @@
+<section class="py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Detalle del pedido</h1>
+    <a href="/commerce/dashboard" class="btn btn-sm btn-outline-secondary">Volver al home</a>
+  </div>
+
+  {{#each successMessages}}
+  <div class="alert alert-success py-2 mb-2">{{this}}</div>
+  {{/each}}
+
+  {{#each errorMessages}}
+  <div class="alert alert-danger py-2 mb-2">{{this}}</div>
+  {{/each}}
+
+  {{#if loadError}}
+  <div class="alert alert-danger py-2">No se pudo cargar el detalle del pedido.</div>
+  {{/if}}
+
+  {{#if notFound}}
+  <div class="alert alert-warning py-2 mb-3">El pedido no existe o no pertenece al comercio logueado.</div>
+  {{/if}}
+
+  {{#if order}}
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-3 align-items-center">
+        <div class="col-auto">
+          {{#if order.commerceLogoUrl}}
+          <img
+            src="{{order.commerceLogoUrl}}"
+            alt="Logo {{order.commerceName}}"
+            class="rounded"
+            style="width: 58px; height: 58px; object-fit: cover;"
+          />
+          {{else}}
+          <span class="badge text-bg-secondary p-3"><i class="bi bi-shop"></i></span>
+          {{/if}}
+        </div>
+        <div class="col">
+          <p class="mb-1"><strong>Comercio:</strong> {{order.commerceName}}</p>
+          <p class="mb-1">
+            <strong>Estado:</strong>
+            {{#if (eq order.status "pendiente")}}
+              <span class="badge text-bg-warning">Pendiente</span>
+            {{/if}}
+            {{#if (eq order.status "en proceso")}}
+              <span class="badge text-bg-primary">En proceso</span>
+            {{/if}}
+            {{#if (eq order.status "completado")}}
+              <span class="badge text-bg-success">Completado</span>
+            {{/if}}
+          </p>
+          <p class="mb-0"><strong>Fecha y hora:</strong> {{order.createdAtLabel}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      <strong>Productos del pedido</strong>
+    </div>
+    <div class="card-body p-0">
+      {{#if hasProducts}}
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Imagen</th>
+              <th>Producto</th>
+              <th>Precio</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each productsList}}
+            <tr>
+              <td>
+                {{#if imageUrl}}
+                <img
+                  src="{{imageUrl}}"
+                  alt="Producto {{name}}"
+                  class="rounded"
+                  style="width: 50px; height: 50px; object-fit: cover;"
+                />
+                {{else}}
+                <span class="badge text-bg-light border text-dark">
+                  <i class="bi bi-image"></i>
+                </span>
+                {{/if}}
+              </td>
+              <td>{{name}}</td>
+              <td>{{priceLabel}}</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="p-3">
+        <p class="mb-0">Este pedido no tiene productos.</p>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <p class="mb-0"><strong>Total del pedido:</strong> {{order.totalLabel}}</p>
+      {{#if order.assignedDeliveryName}}
+      <p class="mb-0 mt-1"><strong>Delivery asignado:</strong> {{order.assignedDeliveryName}}</p>
+      {{/if}}
+    </div>
+  </div>
+
+  {{#if canAssignDelivery}}
+  <div class="card">
+    <div class="card-body">
+      <h2 class="h6">Asignar delivery</h2>
+      <form action="/commerce/orders/{{order.id}}/assign-delivery" method="post" class="row g-2 align-items-end">
+        <div class="col-md-8">
+          <label for="deliveryId" class="form-label mb-1">Delivery disponible</label>
+          <select
+            id="deliveryId"
+            name="deliveryId"
+            class="form-select"
+            {{#unless hasAvailableDeliveries}}disabled{{/unless}}
+          >
+            {{#if hasAvailableDeliveries}}
+              {{#each availableDeliveries}}
+              <option value="{{id}}">{{label}}</option>
+              {{/each}}
+            {{else}}
+              <option value="">No hay deliverys disponibles</option>
+            {{/if}}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <button
+            type="submit"
+            class="btn btn-primary w-100"
+            {{#unless hasAvailableDeliveries}}disabled{{/unless}}
+          >
+            Asignar delivery y pasar a en proceso
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {{/if}}
+  {{/if}}
+</section>
