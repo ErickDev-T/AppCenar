@@ -6,3 +6,5 @@ const router = express.Router();
 
 router.get("/delivery/DeliveryDashboardAdmin", getDeliveryDashboard);
 router.post("/delivery/DeliveryDashboardAdmin", postStatusDelivery);
+
+export default router;

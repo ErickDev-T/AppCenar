@@ -9,7 +9,7 @@ export async function getDeliveryDashboard(req, res, next)
         const result = await Users.find({ role: Roles.DELIVERY }, {name: 1, lastName: 1, email: 1, phone: 1}).lean();
         const deliveries = result || [];
         
-        res.render("delivery-dashboard", {
+        res.render("/delivery-dashboard", {
             deliveriesList: deliveries,
             hasDeliveries: deliveries.length > 0,
             "page-title": "Delivery Dashboard"
@@ -23,7 +23,8 @@ export async function getDeliveryDashboard(req, res, next)
 
 export async function postStatusDelivery(req, res, next)
 {
-    const { deliveryId, status } = req.body;
+    const deliveryId  = req.body;
+    const status = req.body.status === "true";
 
     try
     {

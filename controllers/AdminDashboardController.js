@@ -1,14 +1,15 @@
 import Users from "../models/Users.js";
 import { Roles } from "../utils/enums/roles.js";
 
+//#region get
 export async function getAdminDashboard(req, res, next) 
 {
     try
     {
-        const result = await Users.find({ role: Roles.ADMIN }, {name: 1, lastName: 1, username: 1, email: 1, cedula: 1}).lean();
+        const result = await Users.find({ role: Roles.ADMIN }, {name: 1, lastName: 1, username: 1, email: 1, cedula: 1, isActive: 1}).lean();
         const admins = result || [];
         
-        res.render("Admin", {
+        res.render("/Admin", {
             adminList: admins,
             hasAdmin: admins.length > 0,
             "page-title": "Admin Dashboard"
@@ -19,7 +20,7 @@ export async function getAdminDashboard(req, res, next)
         res.flash('error', 'An error occurred while fetching admin dashboard data.');
     }
 }
-
+//#endregion
 
 //#region post
 
@@ -87,7 +88,7 @@ export async function postAdminSave(req, res)
     await Users.create({...formData, password: hashPassword(password), role: Roles.ADMIN, isActive: true});
 
     req.flash("success", "Administrador creado correctamente.");
-    return res.redirect("/admin");
+    return res.redirect("/Admin");
 
   } catch (error) {
     console.error("Error creando admin:", error);
@@ -98,10 +99,7 @@ export async function postAdminSave(req, res)
 
 //#endregion
 
-
-//#region update
-
-//#region UPDATE ADMIN
+//#region update 
 
 export async function getAdminEdit(req, res, next)
 {
@@ -117,7 +115,7 @@ export async function getAdminEdit(req, res, next)
             return res.redirect("/admin/list");
         }
 
-        res.render("admin/save", {
+        res.render("Admin/Save", {
             editMode: true,
             admin: admin,
             "page-title": `Editar Administrador ${admin.name}`
@@ -210,7 +208,48 @@ export async function postAdminEdit(req, res, next)
     }
 }
 
+export async function postAdminStatus(req, res, next)
+{
+    const adminId = req.params.id;
+    const status  = req.body;
+
+    try
+    {
+        const loggedUserId = req.session.user._id;
+
+        if (adminId === loggedUserId.toString())
+        {
+            req.flash("error", "No puedes modificar tu propio estado.");
+            return res.redirect("/admin");
+        }
+
+        const admin = await Users.findOne({ _id: adminId, role: Roles.ADMIN });
+
+        if (!admin)
+        {
+            req.flash("error", "Administrador no encontrado.");
+            return res.redirect("/admin");
+        }
+
+        await Users.findByIdAndUpdate(adminId, { isActive: status });
+
+        req.flash(
+            "success",
+            status
+                ? "Administrador activado correctamente."
+                : "Administrador inactivado correctamente."
+        );
+
+        return res.redirect("/admin");
+
+    } 
+    catch (error)
+    {
+        console.error("Error updating admin status:", error);
+        req.flash("error", "Error al actualizar el estado del administrador.");
+        return res.redirect("/admin");
+    }
+}
 
 //#endregion
 
-//#region 

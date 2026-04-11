@@ -7,7 +7,7 @@ export async function getConfigurations(req, res, next) {
     const result = await Configuration.find({});
     const configurations = result || [];
 
-    res.render("/configuration", {
+    res.render("/configurations", {
       configurationList: configurations,
       hasconfiguration: configurations.length > 0,
       "page-title": "Configuration Home",
@@ -24,7 +24,7 @@ export async function getConfigurations(req, res, next) {
 
 export async function getConfigurationSave(req, res, next) {
   try {
-    res.render("configuration/save", {
+    res.render("configurations/save", {
       editMode: false,
       "page-title": "Add Configuration",
     });
@@ -40,7 +40,7 @@ export async function postConfigurationSave(req, res, next) {
   try {
     await Configuration.create({ itbis });
     res.flash("success", "Configuration saved successfully.");
-    res.redirect("/configuration");
+    res.redirect("/configurations");
   } catch (err) {
     console.error("Error saving configuration:", err);
     res.flash("error", "An error occurred while saving the configuration.");
@@ -58,10 +58,10 @@ export async function getConfigurationEdit(req, res, next) {
     const configuration = await Configuration.findOne({ _id: id }).lean();
     if (!configuration) {
       res.flash("error", "Configuration not found.");
-      return res.redirect("/configuration");
+      return res.redirect("/configurations");
     }
 
-    res.render("configuration/save", {
+    res.render("configurations/save", {
       editMode: true,
       configuration: configuration,
       "page-title": `Edit Configuration`,
@@ -81,7 +81,7 @@ export async function postConfigurationEdit(req, res, next)
         const configuration = await Configuration.findOne({ _id: id });
         if(!configuration)        {
             res.flash("error", "Configuration not found.");
-            return res.redirect("/configuration");
+            return res.redirect("/configurations");
         }
 
         await Configuration.findByIdAndUpdate(id, { itbis });

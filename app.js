@@ -11,6 +11,10 @@ import connectDB from "./utils/MongooseConnection.js";
 import { attachAuthState } from "./middlewares/auth.middleware.js";
 import dashboardRouter from "./routes/dashboard-router.js";
 import authRouter from "./routes/auth.routes.js";
+import configurationRouter from "./routes/ConfigurationRouter.js";
+import deliveryDashboardRouter from "./routes/DeliveryDashboardRouter.js";
+import adminDashboardRouter from "./routes/AdminDashboardRouter.js";
+import commerceTypeRouter from "./routes/CommerceTypeRouter.js";
 
 const app = express();
 app.engine("hbs", engine({
@@ -44,6 +48,10 @@ app.use(attachAuthState);
 app.use("/user", authRouter);
 app.use("/", authRouter);
 app.use("/dashboard", dashboardRouter);
+app.use("/configurations", configurationRouter);
+app.use("/deliveryDashboar", deliveryDashboardRouter);
+app.use("/adminDashboard", adminDashboardRouter);
+app.use("/commerceType", commerceTypeRouter);
 
 
 app.use((req, res) => {

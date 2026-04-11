@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const configurationSchema = new mongoose.Schema(
   {
     itbis: {
-      tyepe: Number,
+      type: Number,
       required: true,
     },
   },

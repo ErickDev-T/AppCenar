@@ -18,3 +18,5 @@ router.post('/configuration/save', postConfigurationSave);
 
 router.get('/configuration/edit/:id', getConfigurationEdit);
 router.post('/configuration/edit', postConfigurationEdit);
+
+export default router;

@@ -1,0 +1,65 @@
+<div class="container mt-4">
+
+    <div class="row mb-3">
+        <div class="col-12 col-sm-4">
+            <a class="btn btn-success w-100" href="/commerce-types/save">
+                Nuevo Tipo de Comercio
+            </a>
+        </div>
+    </div>
+
+    {{#if hasCommerceTypes}}
+
+    <div class="row">
+
+        {{#each commerceTypesList}}
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card shadow-sm p-3">
+
+                <div class="text-center mb-2">
+                    <i class="{{this.icon}}" style="font-size: 40px;"></i>
+                </div>
+
+
+                <h5 class="text-center">
+                    {{this.name}}
+                </h5>
+
+                <p class="text-center text-muted mb-2">
+                    {{this.description}}
+                </p>
+
+                <div class="d-flex justify-content-between mt-2">
+
+                    <a href="/commerce-types/edit/{{this._id}}" 
+                       class="btn btn-primary btn-sm">
+                        Editar
+                    </a>
+
+                    <form action="/commerce-types/delete/{{this._id}}" method="post">
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            Eliminar
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {{/each}}
+
+    </div>
+
+    {{else}}
+
+    <div class="text-center mt-5">
+        <h3 class="text-muted">No hay tipos de comercio</h3>
+    </div>
+
+    {{/if}}
+
+</div>
