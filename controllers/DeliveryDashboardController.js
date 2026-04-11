@@ -1,7 +1,7 @@
 import Users from "../models/UserModel.js";
 import { Roles } from "../utils/enums/roles.js";
 
-//imcompleto: contar cantidad de pedidos
+//incompleto: contar cantidad de pedidos
 export async function getDeliveryDashboard(req, res, next) 
 {
     try
