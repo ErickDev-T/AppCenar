@@ -14,6 +14,7 @@ import authRouter from "./routes/auth.routes.js";
 import clientRouter from "./routes/client.routes.js";
 import commerceRouter from "./routes/commerce.routes.js";
 import deliveryRouter from "./routes/delivery.routes.js";
+import addressRouter from "./routes/address.routes.js";
 import orderRouter from "./routes/order.routes.js";
 
 const app = express();
@@ -45,12 +46,15 @@ app.use(
 app.use(flash());
 app.use(attachAuthState);
 
+app.use("/", dashboardRouter);
 app.use("/user", authRouter);
 app.use("/client", clientRouter);
 app.use("/commerce", commerceRouter);
 app.use("/delivery", deliveryRouter);
 app.use("/order", orderRouter);
 app.use("/", dashboardRouter);
+app.use("/address", addressRouter);
+app.use("/order", orderRouter);
 
 
 app.use((req, res) => {

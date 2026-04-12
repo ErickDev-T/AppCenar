@@ -1,6 +1,9 @@
+import { body, param} from "express-validator";
+
 function isMongoId(value) {
   return typeof value === "string" && /^[a-f\d]{24}$/i.test(value.trim());
 }
+
 
 export function validatePostCreate(req, res, next) {
   const errors = [];
@@ -44,3 +47,14 @@ export function validatePostCreate(req, res, next) {
   req.orderValidationErrors = errors;
   next();
 }
+
+
+export const validateGetDetail = [
+  param("orderId")
+    .trim()
+    .notEmpty()
+    .withMessage("Order ID is required")
+    .isMongoId()
+    .withMessage("Invalid order ID format")
+    .escape(),
+];

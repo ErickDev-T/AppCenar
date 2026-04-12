@@ -1,48 +1,30 @@
-<section class="py-3">
-  <h1 class="h4 mb-3">Mis pedidos</h1>
 
-  {{#if loadError}}
-  <div class="alert alert-danger py-2 mb-3">No se pudieron cargar tus pedidos.</div>
-  {{/if}}
+<div class="d-flex justify-content-center align-items-start py-5" style="min-height: 100vh; background-color: #0d3b3b;">
+  <div class="p-4 rounded-4" style="background-color: #f0f0f0; width: 100%; max-width: 620px;">
 
-  {{#if hasOrders}}
-  <div class="table-responsive">
-    <table class="table table-sm table-striped align-middle">
-      <thead>
-        <tr>
-          <th>Pedido</th>
-          <th>Comercio</th>
-          <th>Productos</th>
-          <th>Estado</th>
-          <th>Total</th>
-          <th>Fecha</th>
-        </tr>
-      </thead>
-      <tbody>
+    <h4 class="fw-bold mb-1">Mis pedidos</h4>
+    <p class="text-muted small mb-4">Historial de órdenes realizadas</p>
+
+    {{#if hasOrders}}
+      <div class="d-flex flex-column gap-2">
         {{#each ordersList}}
-        <tr>
-          <td>#{{shortId}}</td>
-          <td>{{commerceName}}</td>
-          <td>{{productsCount}}</td>
-          <td>
-            {{#if (eq status "pendiente")}}
-              <span class="badge text-bg-warning">Pendiente</span>
-            {{/if}}
-            {{#if (eq status "en proceso")}}
-              <span class="badge text-bg-primary">En proceso</span>
-            {{/if}}
-            {{#if (eq status "completado")}}
-              <span class="badge text-bg-success">Completado</span>
-            {{/if}}
-          </td>
-          <td>{{totalLabel}}</td>
-          <td>{{createdAtLabel}}</td>
-        </tr>
+          <a href="/orders/detail/{{this._id}}" class="text-decoration-none">
+            <div class="p-3 rounded-3 border" style="background-color: #fff;">
+              <div class="d-flex justify-content-between align-items-center">
+                <strong class="text-dark">{{this.commerceId.name}}</strong>
+                <span class="badge" style="background-color: #1a7a7a;">{{this.status}}</span>
+              </div>
+              <div class="text-muted small mt-1">
+                {{this.products.length}} productos · RD${{this.total}}
+              </div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{this.createdAt}}</div>
+            </div>
+          </a>
         {{/each}}
-      </tbody>
-    </table>
+      </div>
+    {{else}}
+      <p class="text-muted">No tienes pedidos aún.</p>
+    {{/if}}
+
   </div>
-  {{else}}
-  <p class="mb-0">No hay pedidos para mostrar.</p>
-  {{/if}}
-</section>
+</div>

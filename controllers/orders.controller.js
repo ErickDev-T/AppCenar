@@ -168,4 +168,31 @@ export async function PostCreate(req, res, next) {
     req.flash("errors", "Error creating order");
     return res.redirect("/commerce/dashboard");
   }
+
+
+}
+
+// Obtener detalle de orden
+export async function GetDetail(req, res, next) {
+  const { orderId } = req.params;
+
+  try {
+    const order = await Orders.findById(orderId)
+      .populate("commerceId")
+      .populate("addressId")
+      .lean();
+
+    if (!order) {
+      req.flash("errors", "Order not found");
+      return res.redirect("/client/orders");
+    }
+
+    return res.render("orders/detail", {
+      order,
+      "page-title": "Detalle del pedido",
+    });
+  } catch (err) {
+    console.error("Error fetching order detail:", err);
+    req.flash("errors", "Error fetching order detail");
+  }
 }

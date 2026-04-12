@@ -1,0 +1,44 @@
+<div class="d-flex justify-content-center align-items-start py-5" style="min-height: 100vh; background-color: #0d3b3b;">
+  <div class="p-4 rounded-4" style="background-color: #f0f0f0; width: 100%; max-width: 620px;">
+
+    <div class="text-center mb-4">
+      {{#if order.commerceId.logo}}
+        <img src="{{order.commerceId.logo}}" alt="logo" width="60" height="60"
+          class="rounded-circle mb-2" style="object-fit: cover;">
+      {{/if}}
+      <h5 class="fw-bold mb-1">{{order.commerceId.name}}</h5>
+      <span class="badge" style="background-color: #1a7a7a;">{{order.status}}</span>
+      <div class="text-muted small mt-1">{{order.createdAt}}</div>
+    </div>
+
+    <div class="rounded-3 border overflow-hidden mb-3" style="background-color: #fff;">
+      {{#each order.products}}
+        <div class="d-flex align-items-center p-3 border-bottom">
+          {{#if this.image}}
+            <img src="{{this.image}}" alt="{{this.name}}" width="48" height="48"
+              class="rounded me-3" style="object-fit: cover;">
+          {{/if}}
+          <span class="flex-grow-1 text-dark">{{this.name}}</span>
+          <span class="text-muted small">RD${{this.price}}</span>
+        </div>
+      {{/each}}
+
+      <div class="px-3 pt-2 pb-1 d-flex justify-content-between text-muted small border-top">
+        <span>Subtotal</span>
+        <span>RD${{order.subtotal}}</span>
+      </div>
+      <div class="px-3 pb-2 d-flex justify-content-between text-muted small">
+        <span>ITBIS</span>
+        <span>RD${{order.itbis}}</span>
+      </div>
+      <div class="px-3 pb-3 d-flex justify-content-between border-top pt-2">
+        <strong>Total</strong>
+        <strong>RD${{order.total}}</strong>
+      </div>
+    </div>
+
+    <a href="/client/orders" class="btn w-100 text-white"
+      style="background-color: #1a7a7a;">Volver a mis pedidos</a>
+
+  </div>
+</div>

@@ -4,6 +4,13 @@ import { requireAuth, requireRole } from "../middlewares/auth.middleware.js";
 import { Roles } from "../utils/enums/roles.js";
 import { validatePostCreate } from "./validations/ordersValidations.js";
 
+
+import { PostCreate, GetDetail } from "../controllers/orders.controller.js";
+import { requireAuth, requireRole } from "../middlewares/auth.middleware.js";
+import { handleValidationErrors } from "../middlewares/handleValidation.js";
+import { Roles } from "../utils/enums/roles.js";
+import { validatePostCreate, validateGetDetail } from "./validations/ordersValidations.js";
+
 const router = express.Router();
 
 function attachSessionUser(req, res, next) {
@@ -36,6 +43,17 @@ router.post(
   validatePostCreate,
   handleValidationErrors,
   PostCreate
+);
+
+
+
+router.get(
+  "/detail/:orderId",
+  requireAuth,
+  requireRole(Roles.CLIENT),
+  validateGetDetail,
+  handleValidationErrors("/client/orders"),
+  GetDetail
 );
 
 export default router;
