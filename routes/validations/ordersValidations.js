@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, param} from "express-validator";
 
 export const validatePostCreate = [
   body("CommerceId")
@@ -30,4 +30,14 @@ export const validatePostCreate = [
         throw new Error("Invalid products format");
       }
     }),
+];
+
+export const validateGetDetail = [
+  param("orderId")
+    .trim()
+    .notEmpty()
+    .withMessage("Order ID is required")
+    .isMongoId()
+    .withMessage("Invalid order ID format")
+    .escape(),
 ];

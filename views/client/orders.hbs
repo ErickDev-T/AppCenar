@@ -1,4 +1,29 @@
-<section class="py-3">
-  <h1 class="h4 mb-3">Mis pedidos</h1>
-  <p class="mb-0">No hay pedidos para mostrar.</p>
-</section>
+<div class="d-flex justify-content-center align-items-start py-5" style="min-height: 100vh; background-color: #0d3b3b;">
+  <div class="p-4 rounded-4" style="background-color: #f0f0f0; width: 100%; max-width: 620px;">
+
+    <h4 class="fw-bold mb-1">Mis pedidos</h4>
+    <p class="text-muted small mb-4">Historial de órdenes realizadas</p>
+
+    {{#if hasOrders}}
+      <div class="d-flex flex-column gap-2">
+        {{#each ordersList}}
+          <a href="/orders/detail/{{this._id}}" class="text-decoration-none">
+            <div class="p-3 rounded-3 border" style="background-color: #fff;">
+              <div class="d-flex justify-content-between align-items-center">
+                <strong class="text-dark">{{this.commerceId.name}}</strong>
+                <span class="badge" style="background-color: #1a7a7a;">{{this.status}}</span>
+              </div>
+              <div class="text-muted small mt-1">
+                {{this.products.length}} productos · RD${{this.total}}
+              </div>
+              <div class="text-muted" style="font-size: 0.75rem;">{{this.createdAt}}</div>
+            </div>
+          </a>
+        {{/each}}
+      </div>
+    {{else}}
+      <p class="text-muted">No tienes pedidos aún.</p>
+    {{/if}}
+
+  </div>
+</div>
