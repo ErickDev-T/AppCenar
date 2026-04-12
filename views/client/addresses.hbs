@@ -1,0 +1,42 @@
+<div class="d-flex justify-content-center align-items-start py-5" style="min-height: 100vh; background-color: #0d3b3b;">
+  <div class="p-4 rounded-4" style="background-color: #f0f0f0; width: 100%; max-width: 620px;">
+
+    <h4 class="fw-bold mb-1">Mis direcciones</h4>
+    <p class="text-muted small mb-3">Gestiona tus direcciones de entrega</p>
+
+    <a href="/address/create" class="btn btn-sm mb-3 text-white" style="background-color: #1a7a7a;">
+      <i class="bi bi-plus-circle"></i> Nueva dirección
+    </a>
+
+    {{#if hasAddresses}}
+      <div class="d-flex flex-column gap-2">
+        {{#each addressesList}}
+          <div class="p-3 rounded-3 border" style="background-color: #fff;">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <strong class="text-dark">{{this.name}}</strong>
+                <p class="text-muted small mb-0">{{this.description}}</p>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="/address/edit/{{this._id}}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="/address/delete">
+                  <input type="hidden" name="AddressId" value="{{this._id}}" />
+                  <button type="submit" class="btn btn-sm btn-danger">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No tienes direcciones registradas.
+      </div>
+    {{/if}}
+
+  </div>
+</div>

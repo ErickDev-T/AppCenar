@@ -11,10 +11,13 @@ import connectDB from "./utils/MongooseConnection.js";
 import { attachAuthState } from "./middlewares/auth.middleware.js";
 import dashboardRouter from "./routes/dashboard-router.js";
 import authRouter from "./routes/auth.routes.js";
-import configurationRouter from "./routes/ConfigurationRouter.js";
-import deliveryDashboardRouter from "./routes/DeliveryDashboardRouter.js";
-import adminDashboardRouter from "./routes/AdminDashboardRouter.js";
-import commerceTypeRouter from "./routes/CommerceTypeRouter.js";
+
+import clientRouter from "./routes/client.routes.js";
+import commerceRouter from "./routes/commerce.routes.js";
+import deliveryRouter from "./routes/delivery.routes.js";
+import addressRouter from "./routes/address.routes.js";
+import orderRouter from "./routes/order.routes.js";
+
 
 const app = express();
 app.engine("hbs", engine({
@@ -45,14 +48,16 @@ app.use(
 app.use(flash());
 app.use(attachAuthState);
 
-app.use("/user", authRouter);
 app.use("/", dashboardRouter);
-app.use("/", authRouter);
-app.use("/dashboard", dashboardRouter);
-app.use("/configurations", configurationRouter);
-app.use("/deliveryDashboar", deliveryDashboardRouter);
-app.use("/adminDashboard", adminDashboardRouter);
-app.use("/commerceType", commerceTypeRouter);
+
+app.use("/user", authRouter);
+app.use("/client", clientRouter);
+app.use("/commerce", commerceRouter);
+app.use("/delivery", deliveryRouter);
+app.use("/order", orderRouter);
+app.use("/", dashboardRouter);
+app.use("/address", addressRouter);
+app.use("/order", orderRouter);
 
 
 app.use((req, res) => {

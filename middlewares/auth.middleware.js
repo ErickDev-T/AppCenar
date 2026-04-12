@@ -1,5 +1,6 @@
-// Pasa el usuario de la sesión a las vistas
-// y marca si el usuario esta autenticado o no
+import { Roles } from "../utils/enums/roles.js";
+
+// Expose auth data in views.
 export function attachAuthState(req, res, next) {
   const user = req.session?.user ?? null;
   res.locals.currentUser = user;
@@ -7,8 +8,7 @@ export function attachAuthState(req, res, next) {
   next();
 }
 
-// Verifica que el usuario haya iniciado sesion
-// antes de entrar a una ruta
+// Protect routes that require login.
 export function requireAuth(req, res, next) {
   if (!req.session?.user) {
     return res.redirect("/user/login");
@@ -17,11 +17,42 @@ export function requireAuth(req, res, next) {
   next();
 }
 
-// si ya inició sesión lo manda al inicio
-// si no ha iniciado sesión continua
+// Restrict route access to specific roles.
+export function requireRole(...allowedRoles) {
+  const normalizedRoles = Array.isArray(allowedRoles[0]) ? allowedRoles[0] : allowedRoles;
+
+  return (req, res, next) => {
+    const userRole = req.session?.user?.role;
+
+    if (!userRole || !normalizedRoles.includes(userRole)) {
+      return res.redirect("/");
+    }
+
+    next();
+  };
+}
+
+function resolveDashboardPathByRole(role) {
+  switch (role) {
+    case Roles.CLIENT:
+      return "/client/dashboard";
+    case Roles.DELIVERY:
+      return "/delivery/dashboard";
+    case Roles.COMMERCE:
+      return "/commerce/dashboard";
+    case Roles.ADMIN:
+      return "/admin";
+    default:
+      return "/";
+  }
+}
+
+// Allow guest-only pages (login/register).
 export function requireGuest(req, res, next) {
-  if (req.session?.user) {
-    return res.redirect("/dashboard");
+  const sessionUser = req.session?.user;
+
+  if (sessionUser) {
+    return res.redirect(resolveDashboardPathByRole(sessionUser.role));
   }
 
   next();

@@ -1,6 +1,8 @@
 import { randomBytes, scryptSync } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import Users from "../models/UserModel.js";
+import Commerce from "../models/CommerceModel.js";
+import Delivery from "../models/DeliveryModel.js";
 import { Roles } from "../utils/enums/roles.js";
 import { sendEmail } from "../services/EmailServices.js";
 import bcypt from "bcrypt";
@@ -27,12 +29,23 @@ export async function login(req, res) {
     //el usuario se obtiene por email o username, se normaliza para evitar problemas de espacios o mayusculas
     const normalizedIdentifier = (identifier || "").trim().toLowerCase();
 
-    const user = await Users.findOne({
-      $or: [
-        { email: normalizedIdentifier },
-        { username: normalizedIdentifier }
-      ]
-    });
+    const [regularUser, commerceUser, deliveryUser] = await Promise.all([
+      Users.findOne({
+        $or: [
+          { email: normalizedIdentifier },
+          { username: normalizedIdentifier }
+        ]
+      }),
+      Commerce.findOne({ email: normalizedIdentifier }),
+      Delivery.findOne({
+        $or: [
+          { email: normalizedIdentifier },
+          { username: normalizedIdentifier }
+        ]
+      })
+    ]);
+
+    const user = regularUser || commerceUser || deliveryUser;
 
     if (!user) {
       req.flash("errors", "invalid credentials.");
@@ -40,7 +53,7 @@ export async function login(req, res) {
     }
     //si existe pero no esta activo, retorna el login con mensaje de error
     if (!user.isActive) {
-      req.flash("errors", "account is not active. Please check your email for activation instructions.");
+      req.flash("errors", "La cuenta no esta activada. Sigue las instrucciones en su correo.");
       return res.redirect("/user/login");
     }
 
@@ -63,13 +76,13 @@ export async function login(req, res) {
 
       switch (user.role) {
         case Roles.CLIENT:
-          return res.redirect("/client/dashboard/index");
+          return res.redirect("/client/dashboard");
         case Roles.DELIVERY:
-          return res.redirect("/delivery/dashboard/index");
+          return res.redirect("/delivery/dashboard");
         case Roles.COMMERCE:
-          return res.redirect("/commerce/dashboard/index");
+          return res.redirect("/commerce/dashboard");
         case Roles.ADMIN:
-          return res.redirect("/admin/dashboard/index");
+          return res.redirect("/admin");
         default:
           req.flash("errors", "user role is not recognized.");
           return res.redirect("/user/login");
@@ -204,16 +217,30 @@ export async function register(req, res) {
   }
 
   let createdUserId = null;
+  let createdModel = null;
 
   try {
     // valida unicidad de email y username
-    const [emailAlreadyExists, usernameAlreadyExists] = await Promise.all([
+    const [
+      emailAlreadyExistsInUsers,
+      emailAlreadyExistsInCommerces,
+      emailAlreadyExistsInDeliveries,
+      usernameAlreadyExistsInUsers,
+      usernameAlreadyExistsInDeliveries
+    ] = await Promise.all([
       Users.exists({ email: formData.email }),
-      Users.exists({ username: formData.username })
+      Commerce.exists({ email: formData.email }),
+      Delivery.exists({ email: formData.email }),
+      Users.exists({ username: formData.username }),
+      Delivery.exists({ username: formData.username })
     ]);
 
-    if (emailAlreadyExists) errors.push("Ya existe una cuenta con ese email.");
-    if (usernameAlreadyExists) errors.push("Ese username ya esta en uso.");
+    if (emailAlreadyExistsInUsers || emailAlreadyExistsInCommerces || emailAlreadyExistsInDeliveries) {
+      errors.push("Ya existe una cuenta con ese email.");
+    }
+    if (usernameAlreadyExistsInUsers || usernameAlreadyExistsInDeliveries) {
+      errors.push("Ese username ya esta en uso.");
+    }
 
     if (errors.length > 0) {
       await removeUploadedFile(req.file?.path);
@@ -231,8 +258,10 @@ export async function register(req, res) {
 
     userPayload.profileImage = req.file.filename;
 
-    const createdUser = await Users.create(userPayload);
+    const userRepository = formData.role === Roles.DELIVERY ? Delivery : Users;
+    const createdUser = await userRepository.create(userPayload);
     createdUserId = createdUser._id;
+    createdModel = userRepository;
 
     // envia correo con link para activar cuenta
     const activationLink = `${getBaseUrl(req)}/user/activate/${userPayload.activateToken}`;
@@ -271,7 +300,7 @@ export async function register(req, res) {
     // rollback si se creo usuario pero fallo despues
     if (createdUserId) {
       try {
-        await Users.findByIdAndDelete(createdUserId);
+        await createdModel.findByIdAndDelete(createdUserId);
       } catch (deleteError) {
         console.error("Error cleaning failed registration", deleteError);
       }
@@ -293,7 +322,13 @@ export async function activateAccount(req, res) {
   }
 
   try {
-    const user = await Users.findOne({ activateToken: token });
+    let user = await Users.findOne({ activateToken: token });
+    if (!user) {
+      user = await Commerce.findOne({ activateToken: token });
+    }
+    if (!user) {
+      user = await Delivery.findOne({ activateToken: token });
+    }
 
     if (!user) {
       return res.status(404).send("El enlace de activacion no es valido o ya expiro.");
@@ -311,8 +346,16 @@ export async function activateAccount(req, res) {
 }
 
 export function logout(req, res) {
-  res.status(501).json({
-    ok: false,
-    message: "falta Logout "
+  if (!req.session) {
+    return res.redirect("/user/login");
+  }
+
+  req.session.destroy((ex) => {
+    if (ex) {
+      console.error("Error closing session", ex);
+    }
+
+    res.clearCookie("connect.sid");
+    return res.redirect("/user/login");
   });
 }
