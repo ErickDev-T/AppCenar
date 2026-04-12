@@ -1,13 +1,8 @@
 import express from "express";
-import { PostCreate } from "../controllers/orders.controller.js";
-import { requireAuth, requireRole } from "../middlewares/auth.middleware.js";
-import { Roles } from "../utils/enums/roles.js";
-import { validatePostCreate } from "./validations/ordersValidations.js";
-
 
 import { PostCreate, GetDetail } from "../controllers/orders.controller.js";
 import { requireAuth, requireRole } from "../middlewares/auth.middleware.js";
-import { handleValidationErrors } from "../middlewares/handleValidation.js";
+//import { handleValidationErrors } from "../middlewares/handleValidation.js";
 import { Roles } from "../utils/enums/roles.js";
 import { validatePostCreate, validateGetDetail } from "./validations/ordersValidations.js";
 
@@ -32,7 +27,7 @@ function handleValidationErrors(req, res, next) {
     return res.redirect("/commerce/dashboard");
   }
 
-  next();
+//  next();
 }
 
 router.post(
@@ -52,7 +47,7 @@ router.get(
   requireAuth,
   requireRole(Roles.CLIENT),
   validateGetDetail,
-  handleValidationErrors("/client/orders"),
+  handleValidationErrors,
   GetDetail
 );
 
