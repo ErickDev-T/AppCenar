@@ -1,4 +1,4 @@
-import Users from "../models/Users.js";
+import Users from "../models/UserModel.js";
 import { Roles } from "../utils/enums/roles.js";
 
 //#region get
