@@ -1,6 +1,82 @@
 <section class="py-3">
-  <h1 class="h4 mb-3">Perfil del delivery</h1>
-  {{#if user}}
-    <p class="mb-0">{{user.email}}</p>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Perfil del delivery</h1>
+  </div>
+
+  {{#each successMessages}}
+  <div class="alert alert-success py-2 mb-2">{{this}}</div>
+  {{/each}}
+
+  {{#if errors.length}}
+  <div class="alert alert-danger py-2 mb-3">
+    <ul class="mb-0">
+      {{#each errors}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
   {{/if}}
+
+  <div class="card">
+    <div class="card-body">
+      <form action="/delivery/profile" method="post" enctype="multipart/form-data" class="row g-3" novalidate>
+        <div class="col-12">
+          {{#if profileImageUrl}}
+          <div class="mb-2">
+            <img
+              src="{{profileImageUrl}}"
+              alt="Foto de perfil actual"
+              class="rounded"
+              style="width: 90px; height: 90px; object-fit: cover;"
+            />
+          </div>
+          {{/if}}
+
+          <label for="profileImage" class="form-label">Foto de usuario (opcional)</label>
+          <input id="profileImage" name="profileImage" type="file" class="form-control" accept="image/*" />
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label for="name" class="form-label">Nombre</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            class="form-control"
+            value="{{formData.name}}"
+            required
+          />
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label for="lastName" class="form-label">Apellido</label>
+          <input
+            id="lastName"
+            name="lastName"
+            type="text"
+            class="form-control"
+            value="{{formData.lastName}}"
+            required
+          />
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label for="phone" class="form-label">Telefono</label>
+          <input
+            id="phone"
+            name="phone"
+            type="text"
+            class="form-control"
+            value="{{formData.phone}}"
+            required
+          />
+        </div>
+
+        <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+          <a href="/delivery/dashboard" class="btn btn-outline-secondary">Volver al home</a>
+          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </section>
