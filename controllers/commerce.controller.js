@@ -1,6 +1,5 @@
 import {
   assignDeliveryToCommerceOrder,
-  getAvailableDeliveries,
   getCommerceOrderById,
   getOrdersByCommerce
 } from "./orders.controller.js";
@@ -112,10 +111,7 @@ export async function getOrderDetail(req, res) {
   }
 
   try {
-    const [order, availableDeliveries] = await Promise.all([
-      getCommerceOrderById(orderId, sessionCommerceId),
-      getAvailableDeliveries()
-    ]);
+    const order = await getCommerceOrderById(orderId, sessionCommerceId);
 
     const successMessages = req.flash("success");
     const errorMessages = req.flash("errors");
@@ -151,26 +147,16 @@ export async function getOrderDetail(req, res) {
           deliveryData.username ||
           deliveryData.email ||
           "Delivery"
-        : null
+        : null,
+      hasAssignedDelivery: Boolean(deliveryData)
     };
-
-    const mappedDeliveries = availableDeliveries.map((delivery) => {
-      const fullName = `${delivery?.name || ""} ${delivery?.lastName || ""}`.trim();
-
-      return {
-        id: String(delivery?._id || ""),
-        label: fullName || delivery?.username || delivery?.email || "Delivery"
-      };
-    });
 
     return res.render("commerce/order-detail", {
       ...getCommerceViewModel(req, "Detalle del pedido"),
       order: mappedOrder,
       productsList: mappedOrder.productsList,
       hasProducts: mappedOrder.productsList.length > 0,
-      canAssignDelivery: mappedOrder.status === "pendiente",
-      availableDeliveries: mappedDeliveries,
-      hasAvailableDeliveries: mappedDeliveries.length > 0,
+      canAssignDelivery: mappedOrder.status === "pendiente" && !mappedOrder.hasAssignedDelivery,
       successMessages,
       errorMessages
     });
@@ -188,7 +174,6 @@ export async function getOrderDetail(req, res) {
 export async function postAssignDelivery(req, res) {
   const sessionCommerceId = req.session?.user?._id || req.session?.user?.id;
   const orderId = req.params?.orderId;
-  const deliveryId = String(req.body?.deliveryId || "").trim();
 
   if (!sessionCommerceId) {
     return res.redirect("/user/login");
@@ -199,8 +184,7 @@ export async function postAssignDelivery(req, res) {
   try {
     const result = await assignDeliveryToCommerceOrder({
       orderId,
-      commerceId: sessionCommerceId,
-      deliveryId
+      commerceId: sessionCommerceId
     });
 
     if (!result.ok) {
@@ -215,7 +199,10 @@ export async function postAssignDelivery(req, res) {
           req.flash("errors", "Solo puedes asignar delivery a pedidos pendientes.");
           break;
         case "delivery_not_available":
-          req.flash("errors", "El delivery seleccionado no esta disponible.");
+          req.flash("errors", "No hay delivery disponible en este momento. Intenta mas tarde.");
+          break;
+        case "delivery_already_assigned":
+          req.flash("errors", "Este pedido ya tiene un delivery asignado.");
           break;
         default:
           req.flash("errors", "No se pudo asignar el delivery.");

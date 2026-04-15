@@ -70,11 +70,13 @@ export async function getAvailableDeliveries() {
 }
 
 export async function assignDeliveryToCommerceOrder({ orderId, commerceId, deliveryId }) {
-  if (
-    !mongoose.Types.ObjectId.isValid(orderId) ||
-    !mongoose.Types.ObjectId.isValid(commerceId) ||
-    !mongoose.Types.ObjectId.isValid(deliveryId)
-  ) {
+  const hasDeliveryId = typeof deliveryId === "string" && deliveryId.trim().length > 0;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(commerceId)) {
+    return { ok: false, code: "invalid_ids" };
+  }
+
+  if (hasDeliveryId && !mongoose.Types.ObjectId.isValid(deliveryId)) {
     return { ok: false, code: "invalid_ids" };
   }
 
@@ -87,12 +89,28 @@ export async function assignDeliveryToCommerceOrder({ orderId, commerceId, deliv
     return { ok: false, code: "invalid_status" };
   }
 
-  const delivery = await Delivery.findOne({
-    _id: deliveryId,
-    role: Roles.DELIVERY,
-    isActive: true,
-    deliveryStatus: "disponible"
-  });
+  if (order.deliveryId) {
+    return { ok: false, code: "delivery_already_assigned" };
+  }
+
+  let delivery = null;
+
+  if (hasDeliveryId) {
+    delivery = await Delivery.findOne({
+      _id: deliveryId,
+      role: Roles.DELIVERY,
+      isActive: true,
+      deliveryStatus: "disponible"
+    });
+  } else {
+    const busyDeliveries = await Orders.distinct("deliveryId", { status: "en proceso" });
+    delivery = await Delivery.findOne({
+      role: Roles.DELIVERY,
+      isActive: true,
+      deliveryStatus: "disponible",
+      _id: { $nin: busyDeliveries }
+    }).sort({ createdAt: 1 });
+  }
 
   if (!delivery) {
     return { ok: false, code: "delivery_not_available" };

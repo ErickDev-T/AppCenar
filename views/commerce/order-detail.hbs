@@ -116,33 +116,10 @@
   <div class="card">
     <div class="card-body">
       <h2 class="h6">Asignar delivery</h2>
-      <form action="/commerce/orders/{{order.id}}/assign-delivery" method="post" class="row g-2 align-items-end">
-        <div class="col-md-8">
-          <label for="deliveryId" class="form-label mb-1">Delivery disponible</label>
-          <select
-            id="deliveryId"
-            name="deliveryId"
-            class="form-select"
-            {{#unless hasAvailableDeliveries}}disabled{{/unless}}
-          >
-            {{#if hasAvailableDeliveries}}
-              {{#each availableDeliveries}}
-              <option value="{{id}}">{{label}}</option>
-              {{/each}}
-            {{else}}
-              <option value="">No hay deliverys disponibles</option>
-            {{/if}}
-          </select>
-        </div>
-        <div class="col-md-4">
-          <button
-            type="submit"
-            class="btn btn-primary w-100"
-            {{#unless hasAvailableDeliveries}}disabled{{/unless}}
-          >
-            Asignar delivery y pasar a en proceso
-          </button>
-        </div>
+      <form action="/commerce/orders/{{order.id}}/assign-delivery" method="post">
+        <button type="submit" class="btn btn-primary">
+          Asignar delivery y pasar a en proceso
+        </button>
       </form>
     </div>
   </div>
