@@ -7,7 +7,7 @@ import {
   getAdminEdit,
   postAdminEdit,
   postAdminStatus
-} from "../controllers/AdminDashboardController.js";
+} from "../controllers/AdminController.js";
 
 const router = express.Router();
 
