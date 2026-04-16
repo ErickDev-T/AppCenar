@@ -16,6 +16,7 @@ import commerceRouter from "./routes/commerce.routes.js";
 import deliveryRouter from "./routes/delivery.routes.js";
 import addressRouter from "./routes/address.routes.js";
 import orderRouter from "./routes/order.routes.js";
+import favoriteRouter from "./routes/favorite.routes.js";
 
 const app = express();
 app.engine("hbs", engine({
@@ -53,6 +54,7 @@ app.use("/commerce", commerceRouter);
 app.use("/delivery", deliveryRouter);
 app.use("/address", addressRouter);
 app.use("/order", orderRouter);
+app.use("/favorite", favoriteRouter);
 
 
 app.use((req, res) => {
