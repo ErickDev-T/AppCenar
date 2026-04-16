@@ -8,6 +8,6 @@ router.get("/", requireAuth, getDashboard);
 router.get("/client", requireAuth, getDashboard);
 router.get("/delivery", requireAuth, getDashboard);
 router.get("/commerce", requireAuth, getDashboard);
-router.get("/admin", requireAuth, getDashboard);
+router.get("/Admin", requireAuth, getDashboard);
 
 export default router;

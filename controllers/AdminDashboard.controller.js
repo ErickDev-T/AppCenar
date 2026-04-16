@@ -1,5 +1,5 @@
-import Order from "../models/Order.js";
-import Commerce from "../models/Commerce.js";
+import Order from "../models/OrderModel.js";
+import Commerce from "../models/CommerceModel.js";
 import Users from "../models/UserModel.js";
 import { Roles } from "../utils/enums/roles.js";
 
@@ -12,11 +12,12 @@ export async function getHomeDashboard(req, res, next)
         const Clients = await Users.countDocuments({ role: Roles.CLIENT });
         const Deliverys = await Users.countDocuments({ role: Roles.DELIVERY });
 
-        res.render("Admin/Dashboard", {
+        res.render("/AdminDashboard", {
             totalOrders : Orders,
             totalCommerce : Commerces,
             totalClients : Clients,
             totalDelivery : Deliverys,
+            layout: "admin-layout",
             "page-title": "Admin Dashboard"
         });
 

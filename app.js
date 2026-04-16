@@ -61,7 +61,7 @@ app.use("/", dashboardRouter);
 app.use("/address", addressRouter);
 app.use("/order", orderRouter);
 
-app.use("Admin/Dashboard", AdminDashboardRouter);
+app.use("/Admin", AdminDashboardRouter);
 
 
 app.use((req, res) => {
@@ -77,6 +77,7 @@ app.use((req, res) => {
 try {
  
   await connectDB();
+  
   app.listen(process.env.PORT || 3000);
   console.log(`Server corriento en el puerto ${process.env.PORT || 3000}`);
 } catch (ex) {
