@@ -472,7 +472,7 @@ export async function getEditCategory(req, res) {
       formData: buildCategoryFormData(category),
       formAction: `/commerce/categories/${categoryId}/edit`,
       backHref: "/commerce/categories",
-      submitLabel: "Guardar cambios",
+      submitLabel: "Guardar categoria",
       errors: []
     });
   } catch (err) {
@@ -510,7 +510,7 @@ export async function postEditCategory(req, res) {
       formData,
       formAction: `/commerce/categories/${categoryId}/edit`,
       backHref: "/commerce/categories",
-      submitLabel: "Guardar cambios",
+      submitLabel: "Guardar categoria",
       errors
     });
   }
@@ -549,9 +549,50 @@ export async function postEditCategory(req, res) {
       formData,
       formAction: `/commerce/categories/${categoryId}/edit`,
       backHref: "/commerce/categories",
-      submitLabel: "Guardar cambios",
+      submitLabel: "Guardar categoria",
       errors
     });
+  }
+}
+
+export async function getDeleteCategory(req, res) {
+  const sessionCommerceId = getSessionCommerceId(req);
+  const categoryId = req.params?.categoryId;
+
+  if (!sessionCommerceId) {
+    return res.redirect("/user/login");
+  }
+
+  if (!isValidObjectId(categoryId)) {
+    req.flash("errors", "Categoria invalida.");
+    return res.redirect("/commerce/categories");
+  }
+
+  try {
+    const category = await Category.findOne({
+      _id: categoryId,
+      commerceId: sessionCommerceId
+    })
+      .select("name description")
+      .lean();
+
+    if (!category) {
+      req.flash("errors", "Categoria no encontrada.");
+      return res.redirect("/commerce/categories");
+    }
+
+    return res.render("commerce/category-delete", {
+      ...getCommerceViewModel(req, "Eliminar categoria"),
+      categoryId: String(category._id),
+      categoryName: category.name || "",
+      categoryDescription: category.description || "",
+      backHref: "/commerce/categories",
+      formAction: `/commerce/categories/${categoryId}/delete`
+    });
+  } catch (err) {
+    console.error("Error loading commerce category for delete confirmation:", err);
+    req.flash("errors", "No se pudo cargar la categoria.");
+    return res.redirect("/commerce/categories");
   }
 }
 

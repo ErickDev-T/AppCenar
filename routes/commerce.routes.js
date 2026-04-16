@@ -3,6 +3,7 @@ import {
   getCreateCategory,
   getCategories,
   getDashboard,
+  getDeleteCategory,
   getEditCategory,
   getOrderDetail,
   getProducts,
@@ -31,6 +32,7 @@ router.get("/categories/new", getCreateCategory);
 router.post("/categories/new", postCreateCategory);
 router.get("/categories/:categoryId/edit", getEditCategory);
 router.post("/categories/:categoryId/edit", postEditCategory);
+router.get("/categories/:categoryId/delete", getDeleteCategory);
 router.post("/categories/:categoryId/delete", postDeleteCategory);
 router.get("/products", getProducts);
 router.get("/orders/:orderId", getOrderDetail);
