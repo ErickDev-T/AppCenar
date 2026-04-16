@@ -1,5 +1,5 @@
 import Users from "../models/UserModel.js";
-import Order from "../models/Order.js";
+import Order from "../models/OrderModel.js";
 import { Roles } from "../utils/enums/roles.js";
 
 export async function getClientsDashboard(req, res, next) {
@@ -15,7 +15,7 @@ export async function getClientsDashboard(req, res, next) {
 
     const clients = result || [];
 
-    res.render("/client-dashboard", {
+    res.render("client/client-dashboard", {
       clientsList: clients,
       hasClients: clients.length > 0,
       "page-title": "Client Dashboard",

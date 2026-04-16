@@ -12,7 +12,7 @@ export async function getHomeDashboard(req, res, next)
         const Clients = await Users.countDocuments({ role: Roles.CLIENT });
         const Deliverys = await Users.countDocuments({ role: Roles.DELIVERY });
 
-        res.render("/AdminDashboard", {
+        res.render("Admin/AdminDashboard", {
             totalOrders : Orders,
             totalCommerce : Commerces,
             totalClients : Clients,

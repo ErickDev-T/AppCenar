@@ -17,6 +17,7 @@ import commerceRouter from "./routes/commerce.routes.js";
 import deliveryRouter from "./routes/delivery.routes.js";
 import addressRouter from "./routes/address.routes.js";
 import orderRouter from "./routes/order.routes.js";
+import clientDashboard from "./routes/client-dashboard.routes.js";
 
 import AdminDashboardRouter from "./routes/AdminDashboard.routes.js";
 
@@ -50,6 +51,7 @@ app.use(
 app.use(flash());
 app.use(attachAuthState);
 
+app.use("/Admin", AdminDashboardRouter);
 app.use("/", dashboardRouter);
 
 app.use("/user", authRouter);
@@ -60,8 +62,8 @@ app.use("/order", orderRouter);
 app.use("/", dashboardRouter);
 app.use("/address", addressRouter);
 app.use("/order", orderRouter);
+app.use("/client", clientRouter);
 
-app.use("/Admin", AdminDashboardRouter);
 
 
 app.use((req, res) => {
