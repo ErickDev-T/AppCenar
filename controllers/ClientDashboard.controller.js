@@ -8,20 +8,18 @@ export async function getClientsDashboard(req, res, next) {
       { role: Roles.CLIENT },
       { name: 1, lastName: 1, email: 1, isActive: 1 },
     ).lean();
-    for (const client of result) 
-    {
-        client.ordersCount = await Order.countDocuments({ clientId: client._id });
+    for (const client of result) {
+      client.ordersCount = await Order.countDocuments({ clientId: client._id });
     }
 
     const clients = result || [];
 
-    res.render("/client-dashboard", {
+    res.render("client/client-dashboard", {
       clientsList: clients,
       hasClients: clients.length > 0,
       layout: "admin-layout",
-      "page-title": "Client Dashboard",
+      title: "Client Dashboard",
     });
-
   } catch (err) {
     console.error("Error loading client dashboard:", err);
     req.flash("error", "Error al cargar el dashboard del cliente.");
@@ -29,17 +27,16 @@ export async function getClientsDashboard(req, res, next) {
   }
 }
 
-export async function postStatusClient(req, res, next) 
-{
-    const clientId = req.body;
-    const status = req.body.status === "true";
+export async function postStatusClient(req, res, next) {
+  const clientId = req.body;
+  const status = req.body.status === "true";
 
-    try {
-        await Users.findByIdAndUpdate(clientId, { isActive: status });
-        res.flash("success", "Client status updated successfully.");
-        res.redirect("/client-dashboard");
-    } catch (error) {
-        console.error("Error updating client status:", error);
-        res.flash("error", "An error occurred while updating client status.");
-    }
+  try {
+    await Users.findByIdAndUpdate(clientId, { isActive: status });
+    req.flash("success", "Client status updated successfully.");
+    res.redirect("/client/client-dashboard");
+  } catch (error) {
+    console.error("Error updating client status:", error);
+    res.flash("error", "An error occurred while updating client status.");
+  }
 }
