@@ -62,7 +62,7 @@ app.use("/order", orderRouter);
 app.use("/", dashboardRouter);
 app.use("/address", addressRouter);
 app.use("/order", orderRouter);
-app.use("/client", clientRouter);
+app.use("/client", clientDashboard);
 
 
 

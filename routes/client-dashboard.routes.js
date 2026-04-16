@@ -3,6 +3,6 @@ import { getClientsDashboard } from '../controllers/ClientDashboard.controller.j
 
 const router = express.Router();
 
-router.get('client/client-dashboard', getClientsDashboard);
+router.get('/client-dashboard', getClientsDashboard);
 
 export default router;
