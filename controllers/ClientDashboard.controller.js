@@ -14,7 +14,7 @@ export async function getClientsDashboard(req, res, next) {
 
     const clients = result || [];
 
-    res.render("client/client-dashboard", {
+    res.render("Admin/client-dashboard", {
       clientsList: clients,
       hasClients: clients.length > 0,
       layout: "admin-layout",

@@ -18,6 +18,8 @@ import deliveryRouter from "./routes/delivery.routes.js";
 import addressRouter from "./routes/address.routes.js";
 import orderRouter from "./routes/order.routes.js";
 import clientDashboard from "./routes/client-dashboard.routes.js";
+import deliveryList from "./routes/DeliveryDashboard.routes.js";
+import commerceDashboard from "./routes/commerce-dashboard.routes.js"
 
 import AdminDashboardRouter from "./routes/AdminDashboard.routes.js";
 
@@ -52,18 +54,24 @@ app.use(flash());
 app.use(attachAuthState);
 
 app.use("/Admin", AdminDashboardRouter);
-app.use("/", dashboardRouter);
 
 app.use("/user", authRouter);
+
 app.use("/client", clientRouter);
-app.use("/client", clientDashboard);
+app.use("/Admin", clientDashboard);
 
 app.use("/commerce", commerceRouter);
+app.use("/Admin", commerceDashboard);
+
 app.use("/delivery", deliveryRouter);
+app.use("/Admin", deliveryList);
+
 app.use("/order", orderRouter);
 app.use("/", dashboardRouter);
 app.use("/address", addressRouter);
 app.use("/order", orderRouter);
+app.use("/", dashboardRouter);
+
 
 
 

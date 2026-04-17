@@ -16,9 +16,10 @@ export async function getDeliveryDashboard(req, res, next) {
 
     const deliveries = result || [];
 
-    res.render("/delivery-dashboard", {
+    res.render("Admin/delivery-list", {
       deliveriesList: deliveries,
       hasDeliveries: deliveries.length > 0,
+      layout: "admin-layout",
       "page-title": "Delivery Dashboard",
     });
   } catch (error) {
