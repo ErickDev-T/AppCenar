@@ -3,11 +3,13 @@ import {
   getCommerceOrderById,
   getOrdersByCommerce
 } from "./orders.controller.js";
+
 import { unlink } from "node:fs/promises";
 import path from "node:path";
 import mongoose from "mongoose";
 import Commerce from "../models/CommerceModel.js";
 import Category from "../models/CategoryModel.js";
+import Product from "../models/ProductModel.js";
 import { projectRoot } from "../utils/Paths.js";
 
 function getCommerceViewModel(req, title) {
@@ -71,12 +73,46 @@ function buildCategoryFormData(category, override = {}) {
   };
 }
 
+function buildProductFormData(product, override = {}) {
+  return {
+    name: override.name ?? product?.name ?? "",
+    description: override.description ?? product?.description ?? "",
+    price: override.price ?? product?.price ?? "",
+    categoryId:
+      override.categoryId ??
+      String(product?.categoryId?._id || product?.categoryId || ""),
+    image: override.image ?? product?.image ?? ""
+  };
+}
+
 function isValidObjectId(value) {
   return mongoose.Types.ObjectId.isValid(value);
 }
 
 function toObjectId(value) {
   return isValidObjectId(value) ? new mongoose.Types.ObjectId(value) : null;
+}
+
+function parsePrice(value) {
+  if (value === null || value === undefined) return null;
+
+  const normalized = String(value).trim().replace(",", ".");
+  if (!normalized) return null;
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+async function getCommerceCategoriesOptions(commerceId) {
+  const categories = await Category.find({ commerceId })
+    .sort({ name: 1 })
+    .select("name")
+    .lean();
+
+  return categories.map((category) => ({
+    id: String(category._id),
+    name: category.name || ""
+  }));
 }
 
 async function countProductsByCategory({ commerceId, categoryId }) {
@@ -130,7 +166,7 @@ async function removeUploadedFile(filePath) {
     await unlink(filePath);
   } catch (err) {
     if (err?.code !== "ENOENT") {
-      console.error("Error deleting uploaded commerce profile image:", err);
+      console.error("Error deleting uploaded file:", err);
     }
   }
 }
@@ -142,6 +178,16 @@ async function removePreviousProfileImage(fileName) {
   }
 
   const imagePath = path.join(projectRoot, "public", "Images", "profileImages", fileName);
+  await removeUploadedFile(imagePath);
+}
+
+async function removePreviousProductImage(fileName) {
+  if (!fileName || typeof fileName !== "string") return;
+  if (fileName.startsWith("http://") || fileName.startsWith("https://") || fileName.includes("/") || fileName.includes("\\")) {
+    return;
+  }
+
+  const imagePath = path.join(projectRoot, "public", "Images", "products", fileName);
   await removeUploadedFile(imagePath);
 }
 
@@ -629,8 +675,449 @@ export async function postDeleteCategory(req, res) {
   }
 }
 
-export function getProducts(req, res) {
-  return res.render("commerce/products", getCommerceViewModel(req, "Mantenimiento de productos"));
+export async function getProducts(req, res) {
+  const sessionCommerceId = getSessionCommerceId(req);
+
+  if (!sessionCommerceId) {
+    return res.redirect("/user/login");
+  }
+
+  try {
+    const products = await Product.find({ commerceId: sessionCommerceId })
+      .populate({ path: "categoryId", model: "Category", select: "name" })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const productsList = products.map((product) => ({
+      id: String(product._id),
+      name: product.name || "",
+      description: product.description || "",
+      categoryName: product?.categoryId?.name || "Sin categoria",
+      priceLabel: formatDOP(product.price),
+      imageUrl: resolveImageUrl(product.image, "/Images/products")
+    }));
+
+    return res.render("commerce/products", {
+      ...getCommerceViewModel(req, "Mantenimiento de productos"),
+      productsList,
+      hasProducts: productsList.length > 0,
+      successMessages: req.flash("success"),
+      errors: req.flash("errors")
+    });
+  } catch (err) {
+    console.error("Error loading commerce products:", err);
+    return res.status(500).render("commerce/products", {
+      ...getCommerceViewModel(req, "Mantenimiento de productos"),
+      productsList: [],
+      hasProducts: false,
+      successMessages: [],
+      errors: ["No se pudo cargar el listado de productos."]
+    });
+  }
+}
+
+export async function getCreateProduct(req, res) {
+  const sessionCommerceId = getSessionCommerceId(req);
+
+  if (!sessionCommerceId) {
+    return res.redirect("/user/login");
+  }
+
+  try {
+    const categoriesOptions = await getCommerceCategoriesOptions(sessionCommerceId);
+
+    return res.render("commerce/product-save", {
+      ...getCommerceViewModel(req, "Crear producto"),
+      formData: buildProductFormData(null),
+      formAction: "/commerce/products/new",
+      backHref: "/commerce/products",
+      submitLabel: "Crear producto",
+      categoriesOptions,
+      hasCategories: categoriesOptions.length > 0,
+      requireImage: true,
+      currentImageUrl: null,
+      errors: []
+    });
+  } catch (err) {
+    console.error("Error loading commerce categories for product creation:", err);
+    req.flash("errors", "No se pudo cargar el formulario de productos.");
+    return res.redirect("/commerce/products");
+  }
+}
+
+export async function postCreateProduct(req, res) {
+  const sessionCommerceId = getSessionCommerceId(req);
+
+  if (!sessionCommerceId) {
+    await removeUploadedFile(req.file?.path);
+    return res.redirect("/user/login");
+  }
+
+  const formData = {
+    name: sanitizeText(req.body?.name),
+    description: sanitizeText(req.body?.description),
+    price: sanitizeText(req.body?.price),
+    categoryId: sanitizeText(req.body?.categoryId),
+    image: req.file?.filename || ""
+  };
+
+  const errors = [];
+  const parsedPrice = parsePrice(formData.price);
+
+  if (!formData.name) errors.push("El nombre del producto es obligatorio.");
+  if (!formData.description) errors.push("La descripcion del producto es obligatoria.");
+  if (!formData.price) errors.push("El precio del producto es obligatorio.");
+  if (!formData.categoryId) errors.push("La categoria del producto es obligatoria.");
+  if (!req.file?.filename) errors.push("La foto del producto es obligatoria.");
+  if (parsedPrice === null && formData.price) errors.push("El precio del producto no es valido.");
+  if (parsedPrice !== null && parsedPrice <= 0) errors.push("El precio del producto debe ser mayor que cero.");
+  if (formData.categoryId && !isValidObjectId(formData.categoryId)) {
+    errors.push("La categoria seleccionada no es valida.");
+  }
+
+  let selectedCategory = null;
+  if (errors.length === 0) {
+    try {
+      selectedCategory = await Category.findOne({
+        _id: formData.categoryId,
+        commerceId: sessionCommerceId
+      })
+        .select("_id")
+        .lean();
+
+      if (!selectedCategory) {
+        errors.push("La categoria seleccionada no pertenece a este comercio.");
+      }
+    } catch (err) {
+      console.error("Error validating category on create product:", err);
+      errors.push("No se pudo validar la categoria seleccionada.");
+    }
+  }
+
+  if (errors.length > 0) {
+    await removeUploadedFile(req.file?.path);
+
+    try {
+      const categoriesOptions = await getCommerceCategoriesOptions(sessionCommerceId);
+      return res.status(400).render("commerce/product-save", {
+        ...getCommerceViewModel(req, "Crear producto"),
+        formData,
+        formAction: "/commerce/products/new",
+        backHref: "/commerce/products",
+        submitLabel: "Crear producto",
+        categoriesOptions,
+        hasCategories: categoriesOptions.length > 0,
+        requireImage: true,
+        currentImageUrl: null,
+        errors
+      });
+    } catch (err) {
+      console.error("Error reloading categories on create product validation:", err);
+      req.flash("errors", "No se pudo validar la informacion del producto.");
+      return res.redirect("/commerce/products");
+    }
+  }
+
+  try {
+    await Product.create({
+      commerceId: sessionCommerceId,
+      categoryId: selectedCategory._id,
+      name: formData.name,
+      description: formData.description,
+      price: parsedPrice,
+      image: req.file.filename
+    });
+
+    req.flash("success", "Producto creado correctamente.");
+    return res.redirect("/commerce/products");
+  } catch (err) {
+    console.error("Error creating commerce product:", err);
+
+    await removeUploadedFile(req.file?.path);
+
+    try {
+      const categoriesOptions = await getCommerceCategoriesOptions(sessionCommerceId);
+      return res.status(500).render("commerce/product-save", {
+        ...getCommerceViewModel(req, "Crear producto"),
+        formData,
+        formAction: "/commerce/products/new",
+        backHref: "/commerce/products",
+        submitLabel: "Crear producto",
+        categoriesOptions,
+        hasCategories: categoriesOptions.length > 0,
+        requireImage: true,
+        currentImageUrl: null,
+        errors: ["No se pudo crear el producto. Intenta nuevamente."]
+      });
+    } catch (categoriesErr) {
+      console.error("Error loading categories after create product failure:", categoriesErr);
+      req.flash("errors", "No se pudo crear el producto. Intenta nuevamente.");
+      return res.redirect("/commerce/products");
+    }
+  }
+}
+
+export async function getEditProduct(req, res) {
+  const sessionCommerceId = getSessionCommerceId(req);
+  const productId = req.params?.productId;
+
+  if (!sessionCommerceId) {
+    return res.redirect("/user/login");
+  }
+
+  if (!isValidObjectId(productId)) {
+    req.flash("errors", "Producto invalido.");
+    return res.redirect("/commerce/products");
+  }
+
+  try {
+    const [product, categoriesOptions] = await Promise.all([
+      Product.findOne({
+        _id: productId,
+        commerceId: sessionCommerceId
+      }).lean(),
+      getCommerceCategoriesOptions(sessionCommerceId)
+    ]);
+
+    if (!product) {
+      req.flash("errors", "Producto no encontrado.");
+      return res.redirect("/commerce/products");
+    }
+
+    return res.render("commerce/product-save", {
+      ...getCommerceViewModel(req, "Editar producto"),
+      formData: buildProductFormData(product),
+      formAction: `/commerce/products/${productId}/edit`,
+      backHref: "/commerce/products",
+      submitLabel: "Guardar producto",
+      categoriesOptions,
+      hasCategories: categoriesOptions.length > 0,
+      requireImage: false,
+      currentImageUrl: resolveImageUrl(product.image, "/Images/products"),
+      errors: []
+    });
+  } catch (err) {
+    console.error("Error loading commerce product for edit:", err);
+    req.flash("errors", "No se pudo cargar el producto.");
+    return res.redirect("/commerce/products");
+  }
+}
+
+export async function postEditProduct(req, res) {
+  const sessionCommerceId = getSessionCommerceId(req);
+  const productId = req.params?.productId;
+
+  if (!sessionCommerceId) {
+    await removeUploadedFile(req.file?.path);
+    return res.redirect("/user/login");
+  }
+
+  if (!isValidObjectId(productId)) {
+    await removeUploadedFile(req.file?.path);
+    req.flash("errors", "Producto invalido.");
+    return res.redirect("/commerce/products");
+  }
+
+  try {
+    const existingProduct = await Product.findOne({
+      _id: productId,
+      commerceId: sessionCommerceId
+    }).lean();
+
+    if (!existingProduct) {
+      await removeUploadedFile(req.file?.path);
+      req.flash("errors", "Producto no encontrado.");
+      return res.redirect("/commerce/products");
+    }
+
+    const formData = {
+      name: sanitizeText(req.body?.name),
+      description: sanitizeText(req.body?.description),
+      price: sanitizeText(req.body?.price),
+      categoryId: sanitizeText(req.body?.categoryId),
+      image: existingProduct.image || ""
+    };
+
+    const errors = [];
+    const parsedPrice = parsePrice(formData.price);
+
+    if (!formData.name) errors.push("El nombre del producto es obligatorio.");
+    if (!formData.description) errors.push("La descripcion del producto es obligatoria.");
+    if (!formData.price) errors.push("El precio del producto es obligatorio.");
+    if (!formData.categoryId) errors.push("La categoria del producto es obligatoria.");
+    if (parsedPrice === null && formData.price) errors.push("El precio del producto no es valido.");
+    if (parsedPrice !== null && parsedPrice <= 0) errors.push("El precio del producto debe ser mayor que cero.");
+    if (formData.categoryId && !isValidObjectId(formData.categoryId)) {
+      errors.push("La categoria seleccionada no es valida.");
+    }
+
+    let selectedCategory = null;
+    if (errors.length === 0) {
+      selectedCategory = await Category.findOne({
+        _id: formData.categoryId,
+        commerceId: sessionCommerceId
+      })
+        .select("_id")
+        .lean();
+
+      if (!selectedCategory) {
+        errors.push("La categoria seleccionada no pertenece a este comercio.");
+      }
+    }
+
+    if (errors.length > 0) {
+      await removeUploadedFile(req.file?.path);
+
+      const categoriesOptions = await getCommerceCategoriesOptions(sessionCommerceId);
+      return res.status(400).render("commerce/product-save", {
+        ...getCommerceViewModel(req, "Editar producto"),
+        formData,
+        formAction: `/commerce/products/${productId}/edit`,
+        backHref: "/commerce/products",
+        submitLabel: "Guardar producto",
+        categoriesOptions,
+        hasCategories: categoriesOptions.length > 0,
+        requireImage: false,
+        currentImageUrl: resolveImageUrl(existingProduct.image, "/Images/products"),
+        errors
+      });
+    }
+
+    const nextImage = req.file?.filename || existingProduct.image;
+
+    const updated = await Product.findOneAndUpdate(
+      {
+        _id: productId,
+        commerceId: sessionCommerceId
+      },
+      {
+        name: formData.name,
+        description: formData.description,
+        price: parsedPrice,
+        categoryId: selectedCategory._id,
+        image: nextImage
+      },
+      { new: true }
+    ).lean();
+
+    if (!updated) {
+      await removeUploadedFile(req.file?.path);
+      req.flash("errors", "Producto no encontrado.");
+      return res.redirect("/commerce/products");
+    }
+
+    if (req.file?.filename && existingProduct.image && existingProduct.image !== req.file.filename) {
+      await removePreviousProductImage(existingProduct.image);
+    }
+
+    req.flash("success", "Producto actualizado correctamente.");
+    return res.redirect("/commerce/products");
+  } catch (err) {
+    console.error("Error updating commerce product:", err);
+    await removeUploadedFile(req.file?.path);
+
+    try {
+      const categoriesOptions = await getCommerceCategoriesOptions(sessionCommerceId);
+      return res.status(500).render("commerce/product-save", {
+        ...getCommerceViewModel(req, "Editar producto"),
+        formData: {
+          name: sanitizeText(req.body?.name),
+          description: sanitizeText(req.body?.description),
+          price: sanitizeText(req.body?.price),
+          categoryId: sanitizeText(req.body?.categoryId),
+          image: ""
+        },
+        formAction: `/commerce/products/${productId}/edit`,
+        backHref: "/commerce/products",
+        submitLabel: "Guardar producto",
+        categoriesOptions,
+        hasCategories: categoriesOptions.length > 0,
+        requireImage: false,
+        currentImageUrl: null,
+        errors: ["No se pudo actualizar el producto. Intenta nuevamente."]
+      });
+    } catch (categoriesErr) {
+      console.error("Error loading categories after update product failure:", categoriesErr);
+      req.flash("errors", "No se pudo actualizar el producto. Intenta nuevamente.");
+      return res.redirect("/commerce/products");
+    }
+  }
+}
+
+export async function getDeleteProduct(req, res) {
+  const sessionCommerceId = getSessionCommerceId(req);
+  const productId = req.params?.productId;
+
+  if (!sessionCommerceId) {
+    return res.redirect("/user/login");
+  }
+
+  if (!isValidObjectId(productId)) {
+    req.flash("errors", "Producto invalido.");
+    return res.redirect("/commerce/products");
+  }
+
+  try {
+    const product = await Product.findOne({
+      _id: productId,
+      commerceId: sessionCommerceId
+    })
+      .select("name description")
+      .lean();
+
+    if (!product) {
+      req.flash("errors", "Producto no encontrado.");
+      return res.redirect("/commerce/products");
+    }
+
+    return res.render("commerce/product-delete", {
+      ...getCommerceViewModel(req, "Eliminar producto"),
+      productId: String(product._id),
+      productName: product.name || "",
+      productDescription: product.description || "",
+      backHref: "/commerce/products",
+      formAction: `/commerce/products/${productId}/delete`
+    });
+  } catch (err) {
+    console.error("Error loading commerce product for delete confirmation:", err);
+    req.flash("errors", "No se pudo cargar el producto.");
+    return res.redirect("/commerce/products");
+  }
+}
+
+export async function postDeleteProduct(req, res) {
+  const sessionCommerceId = getSessionCommerceId(req);
+  const productId = req.params?.productId;
+
+  if (!sessionCommerceId) {
+    return res.redirect("/user/login");
+  }
+
+  if (!isValidObjectId(productId)) {
+    req.flash("errors", "Producto invalido.");
+    return res.redirect("/commerce/products");
+  }
+
+  try {
+    const deleted = await Product.findOneAndDelete({
+      _id: productId,
+      commerceId: sessionCommerceId
+    }).lean();
+
+    if (!deleted) {
+      req.flash("errors", "Producto no encontrado.");
+      return res.redirect("/commerce/products");
+    }
+
+    await removePreviousProductImage(deleted.image);
+
+    req.flash("success", "Producto eliminado correctamente.");
+    return res.redirect("/commerce/products");
+  } catch (err) {
+    console.error("Error deleting commerce product:", err);
+    req.flash("errors", "No se pudo eliminar el producto.");
+    return res.redirect("/commerce/products");
+  }
 }
 
 export async function getOrderDetail(req, res) {
