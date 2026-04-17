@@ -98,7 +98,9 @@
   <div class="card mb-3">
     <div class="card-body">
       <p class="mb-1"><strong>Total del pedido:</strong> {{order.totalLabel}}</p>
+      {{#unless (eq order.status "completado")}}
       <p class="mb-0"><strong>Direccion de entrega:</strong> {{order.deliveryAddressLabel}}</p>
+      {{/unless}}
     </div>
   </div>
 
