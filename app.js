@@ -50,13 +50,11 @@ app.use(flash());
 app.use(attachAuthState);
 
 app.use("/", dashboardRouter);
-
 app.use("/user", authRouter);
 app.use("/client", clientRouter);
 app.use("/commerce", commerceRouter);
 app.use("/delivery", deliveryRouter);
 app.use("/order", orderRouter);
-app.use("/", dashboardRouter);
 app.use("/address", addressRouter);
 app.use("/order", orderRouter);
 app.use("/favorite", favoriteRouter);

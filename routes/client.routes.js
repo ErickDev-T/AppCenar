@@ -5,7 +5,8 @@ import {
   getFavorites,
   getOrders,
   getProfile,
-  updateProfile
+  updateProfile,
+  getCommercesByTypeView
 } from "../controllers/client.controller.js";
 import { Roles } from "../utils/enums/roles.js";
 import { requireAuth, requireRole } from "../middlewares/auth.middleware.js";
@@ -22,5 +23,6 @@ router.get("/addresses", getAddresses);
 router.get("/favorites", getFavorites);
 router.get("/profile", getProfile);
 router.post("/profile", uploadProfileImage, updateProfile);
+router.get("/commerces/:commerceTypeId", getCommercesByTypeView);
 
 export default router;

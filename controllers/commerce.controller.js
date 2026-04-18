@@ -232,3 +232,16 @@ export async function postAssignDelivery(req, res) {
     return res.redirect(redirectPath);
   }
 }
+
+export async function getCommercesByType(commerceTypeId, search) {
+  const query = { commerceType: commerceTypeId, isActive: true };
+  if (search) query.name = { $regex: search, $options: "i" };
+
+  const [commerces, commerceType, total] = await Promise.all([
+    Commerce.find(query).lean(),
+    CommerceType.findById(commerceTypeId).lean(),
+    Commerce.countDocuments({ commerceType: commerceTypeId, isActive: true })
+  ]);
+
+  return { commerces, commerceType, total };
+}

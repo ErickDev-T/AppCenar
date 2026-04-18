@@ -1,8 +1,8 @@
+import CommerceType from "../models/CommerceTypeModel.js";
 import { getOrdersByClient } from "./orders.controller.js";
-
+import { getCommercesByType } from "./commerce.controller.js";
 import { getAddressesByUser } from "./address.controller.js";
 import { getFavoritesByClient } from "./favorite.controller.js";
-import CommerceType from "../models/CommerceTypeModel.js";
 import { unlink } from "node:fs/promises";
 import Users from "../models/UserModel.js";
 
@@ -30,7 +30,6 @@ function getClientViewModel(req, title) {
 export async function getDashboard(req, res) {
   try {
     const commerceTypes = await CommerceType.find().lean();
-
     return res.render("client/dashboard/index", {
       ...getClientViewModel(req, "Inicio"),
       commerceTypes,
@@ -43,6 +42,27 @@ export async function getDashboard(req, res) {
       commerceTypes: [],
       hasCommerceTypes: false
     });
+  }
+}
+
+export async function getCommercesByTypeView(req, res) {
+  try {
+    const { commerceTypeId } = req.params;
+    const { search } = req.query;
+
+    const { commerces, commerceType, total } = await getCommercesByType(commerceTypeId, search);
+
+    return res.render("client/commerces", {
+      ...getClientViewModel(req, commerceType?.name ?? "Comercios"),
+      commerces,
+      commerceType,
+      total,
+      search: search ?? "",
+      hasCommerces: commerces.length > 0
+    });
+  } catch (ex) {
+    console.error("Error loading commerces:", ex);
+    return res.redirect("/client/dashboard");
   }
 }
 
