@@ -49,19 +49,29 @@ export async function getCommercesByTypeView(req, res) {
   try {
     const { commerceTypeId } = req.params;
     const { search } = req.query;
+    const sessionUserId = req.session?.user?._id;
 
     const { commerces, commerceType, total } = await getCommercesByType(commerceTypeId, search);
 
+    // Obtener los favoritos del usuario para saber cuáles ya están guardados
+    const favorites = await getFavoritesByClient(sessionUserId);
+    const favoriteCommerceIds = new Set(favorites.map(f => String(f.commerceId)));
+
+    const commercesConFavorito = commerces.map(c => ({
+      ...c,
+      esFavorito: favoriteCommerceIds.has(String(c._id))
+    }));
+
     return res.render("client/commerces", {
       ...getClientViewModel(req, commerceType?.name ?? "Comercios"),
-      commerces,
+      commerces: commercesConFavorito,
       commerceType,
       total,
       search: search ?? "",
       hasCommerces: commerces.length > 0
     });
   } catch (ex) {
-    console.error("Error loading commerces:", ex);
+    console.error("Error cargando comercios:", ex);
     return res.redirect("/client/dashboard");
   }
 }
@@ -246,6 +256,8 @@ export async function getFavorites(req, res) {
       ...getClientViewModel(req, "Mis favoritos"),
       favoritesList: favorites,
       hasFavorites: favorites.length > 0,
+      errors: req.flash("errors"),
+      success: req.flash("success")
     });
   }
   catch (err) {

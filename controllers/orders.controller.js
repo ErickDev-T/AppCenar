@@ -304,7 +304,7 @@ export async function GetDetail(req, res, next) {
       return res.redirect("/client/orders");
     }
 
-    return res.render("orders/detail", {
+    return res.render("client/orders/detail", {
       order,
       "page-title": "Detalle del pedido"
     });

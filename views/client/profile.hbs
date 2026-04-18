@@ -46,7 +46,7 @@
               <label for="profileImage" class="form-label mb-1">Foto de perfil <span class="text-muted small">(opcional)</span></label>
               {{#if formData.profileImage}}
                 <div class="mb-2">
-                  <img src="/uploads/{{formData.profileImage}}" alt="Foto actual" class="rounded-circle" width="60" height="60" style="object-fit:cover;" />
+                  <img src="/Images/profileImages/{{formData.profileImage}}" alt="Foto actual" class="rounded-circle" width="60" height="60" style="object-fit:cover;" />
                 </div>
               {{/if}}
               <input type="file" class="form-control" id="profileImage" name="profileImage" accept="image/*" />

@@ -1,13 +1,27 @@
 import Favorite from "../models/FavoriteModel.js";
 
 export async function getFavoritesByClient(userId) {
-    return await Favorite.find({ userId }).sort({ createdAt: -1 }).lean();
+  return await Favorite.find({ userId })
+    .populate({ path: "commerceId", model: "Commerce", select: "name profileImage" })
+    .sort({ createdAt: -1 })
+    .lean();
 }
 
 export async function PostCreate(req, res, next) {
     const { CommerceId } = req.body;
 
     try{
+
+        var isFavorite = await Favorite.findOne({
+            userId: req.session.user._id,
+            commerceId: CommerceId
+        });
+
+        if (isFavorite) {
+            req.flash("errors", "El comercio ya está en tus favoritos");
+            return res.redirect("/client/favorites");
+        }
+
         await Favorite.create({
             userId: req.session.user._id,
             commerceId: CommerceId
@@ -40,6 +54,7 @@ export async function PostDelete(req, res, next) {
 
 
         req.flash("success", "Eliminado de favoritos exitosamente");
+        return res.redirect("/client/favorites");
     }
     catch (err) {
         console.error("Error deleting favorite:", err);

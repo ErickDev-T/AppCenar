@@ -27,7 +27,8 @@ app.engine("hbs", engine({
     extname: "hbs",
     helpers: {
         section: GetSection,
-        eq: Equals
+        eq: Equals,
+        includes: (arr, val) => Array.isArray(arr) && arr.includes(String(val))
     }
 }));
 
@@ -58,7 +59,6 @@ app.use("/order", orderRouter);
 app.use("/address", addressRouter);
 app.use("/order", orderRouter);
 app.use("/favorite", favoriteRouter);
-
 
 app.use((req, res) => {
 

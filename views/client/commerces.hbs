@@ -21,15 +21,23 @@
       {{#each commerces}}
         <div class="list-group-item d-flex align-items-center gap-3 py-3">
           <a href="/client/catalogue/{{this._id}}" class="d-flex align-items-center gap-3 text-decoration-none text-dark flex-grow-1">
-            <img src="/uploads/{{this.profileImage}}" alt="{{this.name}}" width="48" height="48" class="rounded-circle" />
+            <img src="/Images/profileImages/{{this.profileImage}}" alt="{{this.name}}" width="48" height="48" class="rounded-circle" />
             <span class="fw-semibold">{{this.name}}</span>
           </a>
-          <form action="/favorite/toggle" method="POST">
-            <input type="hidden" name="commerceId" value="{{this._id}}" />
-            <button type="submit" class="btn btn-sm btn-outline-danger">
-              <i class="bi bi-heart"></i>
-            </button>
-          </form>
+
+          {{#if this.esFavorito}}
+            <span class="btn btn-sm btn-danger disabled">
+              <i class="bi bi-heart-fill"></i>
+            </span>
+          {{else}}
+            <form action="/favorite/create" method="POST">
+              <input type="hidden" name="CommerceId" value="{{this._id}}" />
+              <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-heart"></i>
+              </button>
+            </form>
+          {{/if}}
+
         </div>
       {{/each}}
     </div>
