@@ -1,0 +1,59 @@
+<section class="py-3">
+  <h1 class="h4 mb-3">Home del delivery</h1>
+
+  {{#if loadError}}
+  <div class="alert alert-danger py-2 mb-3">No se pudieron cargar los pedidos asignados.</div>
+  {{/if}}
+
+  {{#if hasOrders}}
+  <div class="table-responsive">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Logo</th>
+          <th>Estado</th>
+          <th>Comercio</th>
+          <th>Total</th>
+          <th>Cantidad de productos</th>
+          <th>Fecha y hora</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each ordersList}}
+        <tr>
+          <td>
+            {{#if commerceLogoUrl}}
+            <img
+              src="{{commerceLogoUrl}}"
+              alt="Logo {{commerceName}}"
+              class="rounded"
+              style="width: 44px; height: 44px; object-fit: cover;"
+            />
+            {{else}}
+            <span class="badge text-bg-secondary"><i class="bi bi-shop"></i></span>
+            {{/if}}
+          </td>
+          <td>
+            {{#if (eq status "pendiente")}}
+              <span class="badge text-bg-warning">Pendiente</span>
+            {{/if}}
+            {{#if (eq status "en proceso")}}
+              <span class="badge text-bg-primary">En proceso</span>
+            {{/if}}
+            {{#if (eq status "completado")}}
+              <span class="badge text-bg-success">Completado</span>
+            {{/if}}
+          </td>
+          <td>{{commerceName}}</td>
+          <td>{{totalLabel}}</td>
+          <td>{{productsCount}}</td>
+          <td>{{createdAtLabel}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <p class="mb-0">No hay pedidos asignados para mostrar.</p>
+  {{/if}}
+</section>

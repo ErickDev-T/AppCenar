@@ -1,15 +1,14 @@
 import { randomBytes, scryptSync } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import Users from "../models/UserModel.js";
-import CommerceType from "../models/CommerceTypeModel.js";
+import Commerce from "../models/CommerceModel.js";
+import Delivery from "../models/DeliveryModel.js";
 import { Roles } from "../utils/enums/roles.js";
 import { sendEmail } from "../services/EmailServices.js";
 import bcypt from "bcrypt";
 
-
 // render del login con mensajes opcionales
 export function renderLoginPage(req, res) {
-
   const errors = req.flash("errors");
 
   return res.render("auth/login", {
@@ -23,22 +22,30 @@ export function renderLoginPage(req, res) {
 }
 
 export async function login(req, res) {
-
-  const { identifier, password } = req.body
+  const { identifier, password } = req.body;
 
   try {
-    //si el usuario no existe, retorna el login con mensaje de error 
+    //si el usuario no existe, retorna el login con mensaje de error
     //el usuario se obtiene por email o username, se normaliza para evitar problemas de espacios o mayusculas
-
     const normalizedIdentifier = (identifier || "").trim().toLowerCase();
 
-    const user = await Users.findOne({
-      $or: [
-        { email: normalizedIdentifier },
-        { username: normalizedIdentifier }
-      ]
-    });
+    const [regularUser, commerceUser, deliveryUser] = await Promise.all([
+      Users.findOne({
+        $or: [
+          { email: normalizedIdentifier },
+          { username: normalizedIdentifier }
+        ]
+      }),
+      Commerce.findOne({ email: normalizedIdentifier }),
+      Delivery.findOne({
+        $or: [
+          { email: normalizedIdentifier },
+          { username: normalizedIdentifier }
+        ]
+      })
+    ]);
 
+    const user = regularUser || commerceUser || deliveryUser;
 
     if (!user) {
       req.flash("errors", "invalid credentials.");
@@ -46,19 +53,18 @@ export async function login(req, res) {
     }
     //si existe pero no esta activo, retorna el login con mensaje de error
     if (!user.isActive) {
-      req.flash("errors", "account is not active. Please check your email for activation instructions.");
+      req.flash("errors", "La cuenta no esta activada. Sigue las instrucciones en su correo.");
       return res.redirect("/user/login");
     }
 
     //si existe y esta activo, compara password,si no coincide, retorna el login con mensaje de error
-    const isPasswordValid = await bcypt.compare(password, user.password);
+    const isPasswordValid = await verifyPassword(password, user.password);
     if (!isPasswordValid) {
       req.flash("errors", "invalid password.");
       return res.redirect("/user/login");
     }
 
     //si todo es correcto, guarda el estado de autenticacion en la session y redirige segun rol
-
     req.session.user = user;
     req.session.isAuthenticated = true;
 
@@ -70,19 +76,18 @@ export async function login(req, res) {
 
       switch (user.role) {
         case Roles.CLIENT:
-          return res.redirect("/dashboard/client");
+          return res.redirect("/client/dashboard");
         case Roles.DELIVERY:
-          return res.redirect("/dashboard/delivery");
+          return res.redirect("/delivery/dashboard");
         case Roles.COMMERCE:
-          return res.redirect("/dashboard/commerce");
+          return res.redirect("/commerce/dashboard");
         case Roles.ADMIN:
-          return res.redirect("/dashboard/admin");
+          return res.redirect("/admin");
         default:
           req.flash("errors", "user role is not recognized.");
           return res.redirect("/user/login");
       }
     });
-
   } catch (ex) {
     console.error("Error during login", ex);
     req.flash("errors", "internal error during login");
@@ -99,6 +104,21 @@ function hashPassword(plainPassword) {
   const salt = randomBytes(16).toString("hex");
   const hashedPassword = scryptSync(plainPassword, salt, 64).toString("hex");
   return `${salt}:${hashedPassword}`;
+}
+
+async function verifyPassword(plainPassword, storedPassword) {
+  if (!plainPassword || !storedPassword) return false;
+
+  // Formato actual del registro: "salt:hash" (scrypt)
+  if (storedPassword.includes(":")) {
+    const [salt, savedHash] = storedPassword.split(":");
+    if (!salt || !savedHash) return false;
+    const computedHash = scryptSync(plainPassword, salt, 64).toString("hex");
+    return computedHash === savedHash;
+  }
+
+  // Compatibilidad con posibles contraseñas guardadas en bcrypt
+  return bcypt.compare(plainPassword, storedPassword);
 }
 
 // arma url base para enlaces de activacion
@@ -197,16 +217,30 @@ export async function register(req, res) {
   }
 
   let createdUserId = null;
+  let createdModel = null;
 
   try {
     // valida unicidad de email y username
-    const [emailAlreadyExists, usernameAlreadyExists] = await Promise.all([
+    const [
+      emailAlreadyExistsInUsers,
+      emailAlreadyExistsInCommerces,
+      emailAlreadyExistsInDeliveries,
+      usernameAlreadyExistsInUsers,
+      usernameAlreadyExistsInDeliveries
+    ] = await Promise.all([
       Users.exists({ email: formData.email }),
-      Users.exists({ username: formData.username })
+      Commerce.exists({ email: formData.email }),
+      Delivery.exists({ email: formData.email }),
+      Users.exists({ username: formData.username }),
+      Delivery.exists({ username: formData.username })
     ]);
 
-    if (emailAlreadyExists) errors.push("Ya existe una cuenta con ese email.");
-    if (usernameAlreadyExists) errors.push("Ese username ya esta en uso.");
+    if (emailAlreadyExistsInUsers || emailAlreadyExistsInCommerces || emailAlreadyExistsInDeliveries) {
+      errors.push("Ya existe una cuenta con ese email.");
+    }
+    if (usernameAlreadyExistsInUsers || usernameAlreadyExistsInDeliveries) {
+      errors.push("Ese username ya esta en uso.");
+    }
 
     if (errors.length > 0) {
       await removeUploadedFile(req.file?.path);
@@ -224,8 +258,10 @@ export async function register(req, res) {
 
     userPayload.profileImage = req.file.filename;
 
-    const createdUser = await Users.create(userPayload);
+    const userRepository = formData.role === Roles.DELIVERY ? Delivery : Users;
+    const createdUser = await userRepository.create(userPayload);
     createdUserId = createdUser._id;
+    createdModel = userRepository;
 
     // envia correo con link para activar cuenta
     const activationLink = `${getBaseUrl(req)}/user/activate/${userPayload.activateToken}`;
@@ -264,7 +300,7 @@ export async function register(req, res) {
     // rollback si se creo usuario pero fallo despues
     if (createdUserId) {
       try {
-        await Users.findByIdAndDelete(createdUserId);
+        await createdModel.findByIdAndDelete(createdUserId);
       } catch (deleteError) {
         console.error("Error cleaning failed registration", deleteError);
       }
@@ -286,7 +322,13 @@ export async function activateAccount(req, res) {
   }
 
   try {
-    const user = await Users.findOne({ activateToken: token });
+    let user = await Users.findOne({ activateToken: token });
+    if (!user) {
+      user = await Commerce.findOne({ activateToken: token });
+    }
+    if (!user) {
+      user = await Delivery.findOne({ activateToken: token });
+    }
 
     if (!user) {
       return res.status(404).send("El enlace de activacion no es valido o ya expiro.");
@@ -303,141 +345,165 @@ export async function activateAccount(req, res) {
   }
 }
 
+export function logout(req, res) {
+  if (!req.session) {
+    return res.redirect("/user/login");
+  }
 
-// render del formulario de registro de comercio
-export async function renderRegisterCommercePage(req, res) {
-  return renderRegisterCommerceView(res, {
-    formData: { nombre: "", telefono: "", correo: "", horaApertura: "", horaCierre: "", commerceType: "" },
+  req.session.destroy((ex) => {
+    if (ex) {
+      console.error("Error closing session", ex);
+    }
+
+    res.clearCookie("connect.sid");
+    return res.redirect("/user/login");
+  });
+}
+
+export function renderForgotPasswordPage(req, res) {
+  return res.render("auth/forgot-password", {
+    layout: "anonymous-layout",
+    "page-title": "Restablecer contraseña",
+    formData: { identifier: "" },
+    errors: [],
+    success: false
+  });
+}
+
+export async function forgotPassword(req, res) {
+  const identifier = sanitizeText(req.body.identifier).toLowerCase();
+  const errors = [];
+
+  if (!identifier) errors.push("El usuario o correo es obligatorio.");
+
+  if (errors.length > 0) {
+    return res.render("auth/forgot-password", {
+      layout: "anonymous-layout",
+      "page-title": "Restablecer contraseña",
+      formData: { identifier },
+      errors,
+      success: false
+    });
+  }
+
+  try {
+    const user = await Users.findOne({
+      $or: [{ email: identifier }, { username: identifier }]
+    });
+
+    // Si no existe igual mostramos success para no revelar si el usuario existe
+    if (user) {
+      const resetToken = randomBytes(32).toString("hex");
+      user.resetToken = resetToken;
+      user.resetTokenExpiration = new Date(Date.now() + 1000 * 60 * 60); // 1 hora
+      await user.save();
+
+      const resetLink = `${getBaseUrl(req)}/user/reset-password/${resetToken}`;
+      await sendEmail({
+        to: user.email,
+        subject: "Restablece tu contraseña en AppCenar",
+        html: `
+          <h2>Hola, ${user.name}</h2>
+          <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+          <p>Haz click en el siguiente enlace para continuar:</p>
+          <p><a href="${resetLink}">Restablecer contraseña</a></p>
+          <p>Este enlace expira en 1 hora.</p>
+        `
+      });
+    }
+
+    return res.render("auth/forgot-password", {
+      layout: "anonymous-layout",
+      "page-title": "Restablecer contraseña",
+      formData: { identifier: "" },
+      errors: [],
+      success: true
+    });
+  } catch (ex) {
+    console.error("Error en forgot password", ex);
+    return res.render("auth/forgot-password", {
+      layout: "anonymous-layout",
+      "page-title": "Restablecer contraseña",
+      formData: { identifier },
+      errors: ["No se pudo procesar la solicitud."],
+      success: false
+    });
+  }
+}
+export async function renderResetPasswordPage(req, res) {
+  const token = sanitizeText(req.params.token);
+
+  const user = await Users.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: new Date() }
+  });
+
+  if (!user) {
+    return res.status(404).render("404", {
+      layout: "anonymous-layout",
+      title: "Enlace invalido o expirado"
+    });
+  }
+
+  return res.render("auth/reset-password", {
+    layout: "anonymous-layout",
+    "page-title": "Nueva contraseña",
+    passwordToken: token,
+    userId: user._id,
     errors: []
   });
 }
 
-// render comun del formulario de comercio
-async function renderRegisterCommerceView(res, { formData, errors, statusCode = 200 }) {
-  const commerceTypes = await CommerceType.find().lean();
-  return res.status(statusCode).render("auth/register-commerce", {
-    layout: "anonymous-layout",
-    "page-title": "Registrar comercio",
-    formData,
-    errors,
-    commerceTypes
-  });
-}
-
-// registro de comercio
-export async function registerCommerce(req, res) {
-  const formData = {
-    nombre: sanitizeText(req.body.nombre),
-    telefono: sanitizeText(req.body.telefono),
-    correo: sanitizeText(req.body.correo).toLowerCase(),
-    horaApertura: sanitizeText(req.body.horaApertura),
-    horaCierre: sanitizeText(req.body.horaCierre),
-    tipoComercio: sanitizeText(req.body.tipoComercio)
-  };
+export async function resetPassword(req, res) {
+  const token = sanitizeText(req.body.passwordToken);
+  const userId = sanitizeText(req.body.userId);
   const password = typeof req.body.password === "string" ? req.body.password : "";
   const confirmPassword = typeof req.body.confirmPassword === "string" ? req.body.confirmPassword : "";
   const errors = [];
 
-  // validaciones basicas del formulario
-  if (!formData.nombre) errors.push("El nombre del comercio es obligatorio.");
-  if (!formData.telefono) errors.push("El telefono es obligatorio.");
-  if (!formData.correo) errors.push("El correo es obligatorio.");
-  if (!formData.horaApertura) errors.push("La hora de apertura es obligatoria.");
-  if (!formData.horaCierre) errors.push("La hora de cierre es obligatoria.");
-  if (!formData.tipoComercio) errors.push("Debes seleccionar un tipo de comercio.");
   if (!password) errors.push("La contrasena es obligatoria.");
   if (!confirmPassword) errors.push("Debes confirmar la contrasena.");
-  if (!req.file?.filename) errors.push("El logo del comercio es obligatorio.");
-
-  if (formData.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) {
-    errors.push("El correo no tiene un formato valido.");
-  }
   if (password && password.length < 8) errors.push("La contrasena debe tener al menos 8 caracteres.");
   if (password && confirmPassword && password !== confirmPassword) errors.push("Las contrasenas no coinciden.");
 
-  // si falla validacion, regresa con errores
   if (errors.length > 0) {
-    await removeUploadedFile(req.file?.path);
-    return renderRegisterCommerceView(res, { formData, errors, statusCode: 400 });
+    return res.render("auth/reset-password", {
+      layout: "anonymous-layout",
+      "page-title": "Nueva contraseña",
+      passwordToken: token,
+      userId,
+      errors
+    });
   }
-
-  let createdUserId = null;
 
   try {
-    // valida tipo de comercio y correo unico
-    const [commerceType, emailAlreadyExists] = await Promise.all([
-      CommerceType.exists({ _id: formData.commerceType }),
-      Users.exists({ email: formData.correo })
-    ]);
+    const user = await Users.findOne({
+      _id: userId,
+      resetToken: token,
+      resetTokenExpiration: { $gt: new Date() }
+    });
 
-    if (!commerceType) errors.push("El tipo de comercio seleccionado no es valido.");
-    if (emailAlreadyExists) errors.push("Ya existe una cuenta con ese correo.");
-
-    if (errors.length > 0) {
-      await removeUploadedFile(req.file?.path);
-      return renderRegisterCommerceView(res, { formData, errors, statusCode: 409 });
+    if (!user) {
+      return res.status(404).render("404", {
+        layout: "anonymous-layout",
+        title: "Enlace invalido o expirado"
+      });
     }
 
-    // crea cuenta de comercio inactiva
-    const activateToken = randomBytes(32).toString("hex");
+    user.password = hashPassword(password);
+    user.resetToken = null;
+    user.resetTokenExpiration = null;
+    await user.save();
 
-    const createdUser = await Users.create({
-      name: formData.nombre,
-      email: formData.correo,
-      phone: formData.telefono,
-      openingTime: formData.horaApertura,
-      closingTime: formData.horaCierre,
-      commerceType: formData.tipoComercio,
-      profileImage: req.file.filename,
-      password: hashPassword(password),
-      role: Roles.COMMERCE,
-      isActive: false,
-      activateToken
-    });
-
-    createdUserId = createdUser._id;
-
-    // envia correo de activacion
-    const activationLink = `${getBaseUrl(req)}/user/activate/${activateToken}`;
-    await sendEmail({
-      to: formData.correo,
-      subject: "Activa tu comercio en AppCenar",
-      html: `
-        <h2>Hola, ${formData.nombre}</h2>
-        <p>Tu comercio fue registrado correctamente y esta inactivo.</p>
-        <p>Para activarlo, haz click en el siguiente enlace:</p>
-        <p><a href="${activationLink}">Activar comercio</a></p>
-      `
-    });
-
-    return res.redirect("/user/login?registered=1");
+    return res.redirect("/user/login?activated=1");
   } catch (ex) {
-    // maneja duplicados de email en mongo
-    if (ex?.code === 11000) {
-      const duplicateFields = Object.keys(ex.keyPattern ?? {});
-      if (duplicateFields.includes("email")) errors.push("Ya existe una cuenta con ese correo.");
-      if (errors.length === 0) errors.push("No se pudo crear el comercio por datos duplicados.");
-      await removeUploadedFile(req.file?.path);
-      return renderRegisterCommerceView(res, { formData, errors, statusCode: 409 });
-    }
-
-    // rollback si se creo usuario y luego fallo
-    if (createdUserId) {
-      try { await Users.findByIdAndDelete(createdUserId); } catch (deleteError) {
-        console.error("Error cleaning failed commerce registration", deleteError);
-      }
-    }
-
-    await removeUploadedFile(req.file?.path);
-    console.error("Error creating commerce", ex);
-    errors.push("No se pudo completar el registro o enviar el correo de activacion.");
-    return renderRegisterCommerceView(res, { formData, errors, statusCode: 500 });
+    console.error("Error resetting password", ex);
+    return res.render("auth/reset-password", {
+      layout: "anonymous-layout",
+      "page-title": "Nueva contraseña",
+      passwordToken: token,
+      userId,
+      errors: ["No se pudo restablecer la contrasena."]
+    });
   }
-}
-
-export function logout(req, res) {
-  res.status(501).json({
-    ok: false,
-    message: "falta Logout "
-  });
 }

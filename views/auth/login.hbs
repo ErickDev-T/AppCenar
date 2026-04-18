@@ -1,65 +1,143 @@
-{{#if registered}}
-<div class="alert alert-success py-2">
-    <i class="bi bi-envelope-check"></i> Cuenta creada. Revisa tu correo para activarla.
-</div>
-{{/if}}
+{{#section "styles"}}
+<style>
+  header {
+    display: none;
+  }
 
-{{#if activated}}
-<div class="alert alert-success py-2">
-    <i class="bi bi-check-circle"></i> Cuenta activada. Ya puedes iniciar sesion.
-</div>
-{{/if}}
-<div class="d-flex justify-content-center mt-5">
-    <div class="col-12 col-md-4">
-        <div class="card shadow-sm">
+  main.container {
+    max-width: 100%;
+    margin-top: 0 !important;
+    padding-top: 0;
+  }
 
-            <div class="card-header bg-danger text-light">
-                <h5 class="text-center mb-0"><i class="bi bi-bag-heart-fill"></i> AppCenar – Login</h5>
-            </div>
+  body {
+    background: #032f3a;
+  }
 
-            <div class="card-body">
+  .login-shell {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+  }
 
-                {{#if hasErrors}}
-                {{#each errors}}
-                <div class="alert alert-danger py-2">
-                    <i class="bi bi-exclamation-circle"></i> {{this}}
-                </div>
-                {{/each}}
-                {{/if}}
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ececec;
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+  }
 
-                {{#if inactive}}
-                <div class="alert alert-warning py-2"><i class="bi bi-exclamation-triangle"></i> Tu cuenta está
-                    inactiva. Revisa tu correo o contáctate con un administrador.</div>
-                {{/if}}
+  .login-title {
+    margin: 0 0 18px;
+    color: #1f1f1f;
+    font-size: 1.85rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
 
-                <form action="/user/login" method="POST">
-                    <div class="mb-3">
-                        <label for="identifier" class="form-label">Usuario o correo:</label>
-                        <input type="text" class="form-control" id="identifier" name="identifier" required />
-                    </div>
+  .login-input {
+    background: #e9ecef;
+    border: 1px solid #b9c6ce;
+    color: #1e2428;
+    padding: 10px 12px;
+  }
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña:</label>
-                        <input type="password" class="form-control" id="password" name="password" required />
-                    </div>
+  .login-input:focus {
+    border-color: #19a8bd;
+    box-shadow: 0 0 0 0.18rem rgba(25, 168, 189, 0.25);
+    background: #f4f7f9;
+  }
 
-                    <div class="d-flex justify-content-between flex-wrap gap-2 mt-4">
-                        <a href="/user/forgot-password" class="btn btn-outline-warning btn-sm">
-                            <i class="bi bi-key"></i>Olvidé mi contraseña</a>
+  .login-submit {
+    width: 100%;
+    border: 0;
+    background: #1ca6bd;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 12px;
+    border-radius: 4px;
+  }
 
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            <i class="bi bi-box-arrow-in-right"></i>Iniciar sesión</button>
-                    </div>
-                </form>
-                <hr />
-                <div class="d-grid gap-2">
-                    <a href="/user/register" class="btn btn-outline-primary btn-sm"><i class="bi bi-person-plus"></i>
-                        Registrarse como cliente o delivery</a>
-                    <a href="/user/register-commerce" class="btn btn-outline-secondary btn-sm"><i
-                            class="bi bi-shop"></i> Registrar mi comercio</a>
-                </div>
+  .login-submit:hover {
+    background: #168ca0;
+  }
 
-            </div>
-        </div>
+  .login-subtext {
+    margin: 12px 0 0;
+    text-align: center;
+    color: #666;
+    font-weight: 600;
+  }
+
+  .login-subtext a {
+    color: #4f4f4f;
+    text-decoration: none;
+    border-bottom: 1px solid #8a8a8a;
+  }
+
+  .login-links {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 0.92rem;
+  }
+</style>
+{{/section}}
+
+<div class="login-shell">
+  <div class="login-card">
+    <h1 class="login-title">Iniciar sesion</h1>
+
+    {{#if registered}}
+    <div class="alert alert-success py-2 mb-3">Cuenta creada. Revisa tu correo para activarla.</div>
+    {{/if}}
+
+    {{#if activated}}
+    <div class="alert alert-success py-2 mb-3">Cuenta activada. Ya puedes iniciar sesion.</div>
+    {{/if}}
+
+    {{#if hasErrors}}
+    {{#each errors}}
+    <div class="alert alert-danger py-2 mb-2">{{this}}</div>
+    {{/each}}
+    {{/if}}
+
+    {{#if inactive}}
+    <div class="alert alert-warning py-2 mb-3">Tu cuenta esta inactiva. Revisa tu correo.</div>
+    {{/if}}
+
+    <form action="/user/login" method="POST">
+      <div class="mb-3">
+        <input
+          type="text"
+          class="form-control login-input"
+          id="identifier"
+          name="identifier"
+          placeholder="johndoe@gmail.com"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
+        <input
+          type="password"
+          class="form-control login-input"
+          id="password"
+          name="password"
+          placeholder="Contrasena"
+          required
+        />
+      </div>
+
+      <button type="submit" class="login-submit">Iniciar sesion</button>
+    </form>
+
+    <p class="login-subtext">o, <a href="/user/register">registrate</a></p>
+    <div class="login-links">
+      <a href="/user/forgot-password">Olvide mi contrasena</a>
+      <span class="mx-2">|</span>
+      <a href="/user/register-commerce">Registrar comercio</a>
     </div>
+  </div>
 </div>
