@@ -1,0 +1,92 @@
+<section class="py-3">
+  <h1 class="h4 mb-3">{{title}}</h1>
+
+  {{#if errors.length}}
+  <div class="alert alert-danger py-2 mb-3">
+    <ul class="mb-0">
+      {{#each errors}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+  <div class="card">
+    <div class="card-body">
+      <form action="{{formAction}}" method="post" enctype="multipart/form-data" class="row g-3" novalidate>
+        <div class="col-12">
+          <label for="name" class="form-label">Nombre del producto</label>
+          <input id="name" name="name" type="text" class="form-control" value="{{formData.name}}" required />
+        </div>
+
+        <div class="col-12">
+          <label for="description" class="form-label">Descripcion</label>
+          <input
+            id="description"
+            name="description"
+            type="text"
+            class="form-control"
+            value="{{formData.description}}"
+            required
+          />
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label for="price" class="form-label">Precio del producto</label>
+          <input
+            id="price"
+            name="price"
+            type="number"
+            class="form-control"
+            min="0.01"
+            step="0.01"
+            value="{{formData.price}}"
+            required
+          />
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label for="categoryId" class="form-label">Categoria</label>
+          <select id="categoryId" name="categoryId" class="form-select" required>
+            <option value="">Selecciona una categoria</option>
+            {{#each categoriesOptions}}
+            <option value="{{id}}" {{#if (eq id ../formData.categoryId)}}selected{{/if}}>{{name}}</option>
+            {{/each}}
+          </select>
+          {{#unless hasCategories}}
+          <small class="text-muted">No hay categorias creadas para este comercio.</small>
+          {{/unless}}
+        </div>
+
+        <div class="col-12">
+          <label for="productImage" class="form-label">Foto del producto</label>
+          <input
+            id="productImage"
+            name="productImage"
+            type="file"
+            class="form-control"
+            accept="image/*"
+            {{#if requireImage}}required{{/if}}
+          />
+        </div>
+
+        {{#if currentImageUrl}}
+        <div class="col-12">
+          <p class="form-label mb-2">Imagen actual</p>
+          <img
+            src="{{currentImageUrl}}"
+            alt="Imagen actual del producto"
+            class="rounded border"
+            style="width: 120px; height: 120px; object-fit: cover;"
+          />
+        </div>
+        {{/if}}
+
+        <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+          <a href="{{backHref}}" class="btn btn-outline-secondary">Volver atras</a>
+          <button type="submit" class="btn btn-primary">{{submitLabel}}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

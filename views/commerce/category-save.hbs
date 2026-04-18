@@ -1,0 +1,47 @@
+<section class="py-3">
+  <h1 class="h4 mb-3">{{title}}</h1>
+
+  {{#if errors.length}}
+  <div class="alert alert-danger py-2 mb-3">
+    <ul class="mb-0">
+      {{#each errors}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+  <div class="card">
+    <div class="card-body">
+      <form action="{{formAction}}" method="post" class="row g-3" novalidate>
+        <div class="col-12">
+          <label for="name" class="form-label">Nombre de la categoria</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            class="form-control"
+            value="{{formData.name}}"
+            required
+          />
+        </div>
+
+        <div class="col-12">
+          <label for="description" class="form-label">Descripcion</label>
+          <textarea
+            id="description"
+            name="description"
+            class="form-control"
+            rows="4"
+            required
+          >{{formData.description}}</textarea>
+        </div>
+
+        <div class="col-12 d-flex flex-wrap gap-2 mt-2">
+          <a href="{{backHref}}" class="btn btn-outline-secondary">Volver atras</a>
+          <button type="submit" class="btn btn-primary">{{submitLabel}}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

@@ -1,4 +1,56 @@
 <section class="py-3">
-  <h1 class="h4 mb-3">Mantenimiento de categorias</h1>
-  <p class="mb-0">Aqui podras administrar las categorias del comercio.</p>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h4 mb-0">Mantenimiento de categorias</h1>
+    <a href="/commerce/categories/new" class="btn btn-primary">Crear categoria</a>
+  </div>
+
+  {{#each successMessages}}
+  <div class="alert alert-success py-2 mb-2">{{this}}</div>
+  {{/each}}
+
+  {{#if errors.length}}
+  <div class="alert alert-danger py-2 mb-3">
+    <ul class="mb-0">
+      {{#each errors}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+  <div class="card">
+    <div class="card-body p-0">
+      {{#if hasCategories}}
+      <div class="table-responsive">
+        <table class="table table-striped mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Descripcion</th>
+              <th class="text-center">Productos asignados</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each categoriesList}}
+            <tr>
+              <td>{{name}}</td>
+              <td>{{description}}</td>
+              <td class="text-center">{{productsCount}}</td>
+              <td>
+                <div class="d-flex justify-content-end flex-wrap gap-2">
+                  <a href="/commerce/categories/{{id}}/edit" class="btn btn-sm btn-outline-primary">Editar</a>
+                  <a href="/commerce/categories/{{id}}/delete" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                </div>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <p class="text-muted mb-0 p-3">Aun no has creado categorias en este comercio.</p>
+      {{/if}}
+    </div>
+  </div>
 </section>

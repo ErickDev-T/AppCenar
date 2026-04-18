@@ -1,7 +1,7 @@
 <section class="py-3">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h4 mb-0">Detalle del pedido</h1>
-    <a href="/commerce/dashboard" class="btn btn-sm btn-outline-secondary">Volver al home</a>
+    <a href="/delivery/dashboard" class="btn btn-sm btn-outline-secondary">Volver al home</a>
   </div>
 
   {{#each successMessages}}
@@ -17,7 +17,7 @@
   {{/if}}
 
   {{#if notFound}}
-  <div class="alert alert-warning py-2 mb-3">El pedido no existe o no pertenece al comercio logueado.</div>
+  <div class="alert alert-warning py-2 mb-3">El pedido no existe o no pertenece al delivery logueado.</div>
   {{/if}}
 
   {{#if order}}
@@ -40,15 +40,7 @@
           <p class="mb-1"><strong>Comercio:</strong> {{order.commerceName}}</p>
           <p class="mb-1">
             <strong>Estado:</strong>
-            {{#if (eq order.status "pendiente")}}
-              <span class="badge text-bg-warning">Pendiente</span>
-            {{/if}}
-            {{#if (eq order.status "en proceso")}}
-              <span class="badge text-bg-primary">En proceso</span>
-            {{/if}}
-            {{#if (eq order.status "completado")}}
-              <span class="badge text-bg-success">Completado</span>
-            {{/if}}
+            <span class="badge {{order.statusBadgeClass}}">{{order.statusLabel}}</span>
           </p>
           <p class="mb-0"><strong>Fecha y hora:</strong> {{order.createdAtLabel}}</p>
         </div>
@@ -105,24 +97,19 @@
 
   <div class="card mb-3">
     <div class="card-body">
-      <p class="mb-0"><strong>Total del pedido:</strong> {{order.totalLabel}}</p>
-      {{#if order.assignedDeliveryName}}
-      <p class="mb-0 mt-1"><strong>Delivery asignado:</strong> {{order.assignedDeliveryName}}</p>
-      {{/if}}
+      <p class="mb-1"><strong>Total del pedido:</strong> {{order.totalLabel}}</p>
+      {{#unless (eq order.status "completado")}}
+      <p class="mb-0"><strong>Direccion de entrega:</strong> {{order.deliveryAddressLabel}}</p>
+      {{/unless}}
     </div>
   </div>
 
-  {{#if canAssignDelivery}}
-  <div class="card">
-    <div class="card-body">
-      <h2 class="h6">Asignar delivery</h2>
-      <form action="/commerce/orders/{{order.id}}/assign-delivery" method="post">
-        <button type="submit" class="btn btn-primary">
-          Asignar delivery y pasar a en proceso
-        </button>
-      </form>
-    </div>
-  </div>
+  {{#if canCompleteOrder}}
+  <form action="/delivery/orders/{{order.id}}/complete" method="post">
+    <button type="submit" class="btn btn-success">
+      Completar pedido
+    </button>
+  </form>
   {{/if}}
   {{/if}}
 </section>

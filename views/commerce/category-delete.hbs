@@ -1,0 +1,21 @@
+<section class="py-3">
+  <h1 class="h4 mb-3">Eliminar categoria</h1>
+
+  <div class="card">
+    <div class="card-body">
+      <p class="mb-3">&iquest;Est&aacute; seguro que desea eliminar esta categor&iacute;a?</p>
+
+      <div class="mb-3">
+        <div><strong>Nombre:</strong> {{categoryName}}</div>
+        <div><strong>Descripcion:</strong> {{categoryDescription}}</div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{backHref}}" class="btn btn-outline-secondary">Cancelar</a>
+        <form action="{{formAction}}" method="post">
+          <button type="submit" class="btn btn-danger">Aceptar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
