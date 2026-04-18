@@ -2,6 +2,7 @@ import { randomBytes, scryptSync } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import Users from "../models/UserModel.js";
 import Commerce from "../models/CommerceModel.js";
+import Delivery from "../models/DeliveryModel.js";
 import CommerceType from "../models/CommerceTypeModel.js";
 import { sendEmail } from "../services/EmailServices.js";
 
@@ -100,14 +101,20 @@ export async function registerCommerce(req, res) {
 
   try {
     // valida tipo de comercio y correo unico
-    const [commerceType, emailAlreadyExistsInUsers, emailAlreadyExistsInCommerces] = await Promise.all([
+    const [
+      commerceType,
+      emailAlreadyExistsInUsers,
+      emailAlreadyExistsInCommerces,
+      emailAlreadyExistsInDeliveries
+    ] = await Promise.all([
       CommerceType.exists({ _id: formData.tipoComercio }),
       Users.exists({ email: formData.correo }),
-      Commerce.exists({ email: formData.correo })
+      Commerce.exists({ email: formData.correo }),
+      Delivery.exists({ email: formData.correo })
     ]);
 
     if (!commerceType) errors.push("El tipo de comercio seleccionado no es valido.");
-    if (emailAlreadyExistsInUsers || emailAlreadyExistsInCommerces) {
+    if (emailAlreadyExistsInUsers || emailAlreadyExistsInCommerces || emailAlreadyExistsInDeliveries) {
       errors.push("Ya existe una cuenta con ese correo.");
     }
 

@@ -1,9 +1,25 @@
-<section class="py-3">
-  <h1 class="h4 mb-3">Panel de cliente</h1>
-  {{#if user}}
-    <p class="mb-1"><strong>Usuario:</strong> {{user.email}}</p>
-    <p class="mb-0"><strong>Rol:</strong> {{user.role}}</p>
+<div class="container py-4">
+
+  <h4 class="mb-1">Hola, {{user.name}}</h4>
+  <p class="text-muted small mb-4">¿Qué vas a pedir hoy?</p>
+
+  {{#if hasCommerceTypes}}
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-3">
+      {{#each commerceTypes}}
+        <div class="col">
+          <a href="/client/commerces/{{this._id}}" class="text-decoration-none">
+            <div class="card h-100 text-center shadow-sm border rounded-3 p-2">
+              <div class="card-body p-2">
+                <img src="/uploads/{{this.icon}}" alt="{{this.name}}" class="img-fluid mb-2" width="48" height="48" />
+                <p class="small fw-semibold text-dark mb-0">{{this.name}}</p>
+              </div>
+            </div>
+          </a>
+        </div>
+      {{/each}}
+    </div>
   {{else}}
-    <p class="mb-0">No hay sesion activa.</p>
+    <div class="alert alert-info py-2 small">No hay tipos de comercios disponibles por el momento.</div>
   {{/if}}
-</section>
+
+</div>

@@ -1,0 +1,70 @@
+<div class="container mt-4">
+    <div class="row d-flex justify-content-center">
+
+        <div class="col-12 col-sm-6 col-md-5">
+
+            <div class="card shadow">
+
+                <div class="card-header bg-primary text-light text-center">
+                    <h3 class="h3">
+                        {{#if editMode}} Editar Tipo de Comercio {{else}} Crear Tipo de Comercio {{/if}}
+                    </h3>
+                </div>
+
+                <div class="card-body">
+
+                    <form action="/commerce-types/{{#if editMode}}edit{{else}}save{{/if}}" method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre:</label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="name"
+                                   required
+                                   value="{{#if editMode}}{{commerceType.name}}{{/if}}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Descripción:</label>
+                            <textarea class="form-control"
+                                      name="description"
+                                      rows="3"
+                                      required>{{#if editMode}}{{commerceType.description}}{{/if}}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Icono (clase CSS):</label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="icon"
+                                   placeholder="Ej: fa-solid fa-store"
+                                   required
+                                   value="{{#if editMode}}{{commerceType.icon}}{{/if}}">
+                        </div>
+
+                        {{#if editMode}}
+                        <input type="hidden" name="id" value="{{commerceType._id}}">
+                        {{/if}}
+
+                        <div class="d-flex justify-content-end">
+
+                            <a href="/commerce-types" class="btn btn-warning me-2">
+                                Volver
+                            </a>
+
+                            <button type="submit" class="btn btn-primary">
+                                {{#if editMode}} Actualizar {{else}} Guardar {{/if}}
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

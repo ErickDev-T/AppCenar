@@ -2,6 +2,7 @@ import { randomBytes, scryptSync } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import Users from "../models/UserModel.js";
 import Commerce from "../models/CommerceModel.js";
+import Delivery from "../models/DeliveryModel.js";
 import { Roles } from "../utils/enums/roles.js";
 import { sendEmail } from "../services/EmailServices.js";
 import bcypt from "bcrypt";
@@ -28,17 +29,23 @@ export async function login(req, res) {
     //el usuario se obtiene por email o username, se normaliza para evitar problemas de espacios o mayusculas
     const normalizedIdentifier = (identifier || "").trim().toLowerCase();
 
-    const [regularUser, commerceUser] = await Promise.all([
+    const [regularUser, commerceUser, deliveryUser] = await Promise.all([
       Users.findOne({
         $or: [
           { email: normalizedIdentifier },
           { username: normalizedIdentifier }
         ]
       }),
-      Commerce.findOne({ email: normalizedIdentifier })
+      Commerce.findOne({ email: normalizedIdentifier }),
+      Delivery.findOne({
+        $or: [
+          { email: normalizedIdentifier },
+          { username: normalizedIdentifier }
+        ]
+      })
     ]);
 
-    const user = regularUser || commerceUser;
+    const user = regularUser || commerceUser || deliveryUser;
 
     if (!user) {
       req.flash("errors", "invalid credentials.");
@@ -210,19 +217,30 @@ export async function register(req, res) {
   }
 
   let createdUserId = null;
+  let createdModel = null;
 
   try {
     // valida unicidad de email y username
-    const [emailAlreadyExistsInUsers, emailAlreadyExistsInCommerces, usernameAlreadyExists] = await Promise.all([
+    const [
+      emailAlreadyExistsInUsers,
+      emailAlreadyExistsInCommerces,
+      emailAlreadyExistsInDeliveries,
+      usernameAlreadyExistsInUsers,
+      usernameAlreadyExistsInDeliveries
+    ] = await Promise.all([
       Users.exists({ email: formData.email }),
       Commerce.exists({ email: formData.email }),
-      Users.exists({ username: formData.username })
+      Delivery.exists({ email: formData.email }),
+      Users.exists({ username: formData.username }),
+      Delivery.exists({ username: formData.username })
     ]);
 
-    if (emailAlreadyExistsInUsers || emailAlreadyExistsInCommerces) {
+    if (emailAlreadyExistsInUsers || emailAlreadyExistsInCommerces || emailAlreadyExistsInDeliveries) {
       errors.push("Ya existe una cuenta con ese email.");
     }
-    if (usernameAlreadyExists) errors.push("Ese username ya esta en uso.");
+    if (usernameAlreadyExistsInUsers || usernameAlreadyExistsInDeliveries) {
+      errors.push("Ese username ya esta en uso.");
+    }
 
     if (errors.length > 0) {
       await removeUploadedFile(req.file?.path);
@@ -240,8 +258,10 @@ export async function register(req, res) {
 
     userPayload.profileImage = req.file.filename;
 
-    const createdUser = await Users.create(userPayload);
+    const userRepository = formData.role === Roles.DELIVERY ? Delivery : Users;
+    const createdUser = await userRepository.create(userPayload);
     createdUserId = createdUser._id;
+    createdModel = userRepository;
 
     // envia correo con link para activar cuenta
     const activationLink = `${getBaseUrl(req)}/user/activate/${userPayload.activateToken}`;
@@ -280,7 +300,7 @@ export async function register(req, res) {
     // rollback si se creo usuario pero fallo despues
     if (createdUserId) {
       try {
-        await Users.findByIdAndDelete(createdUserId);
+        await createdModel.findByIdAndDelete(createdUserId);
       } catch (deleteError) {
         console.error("Error cleaning failed registration", deleteError);
       }
@@ -305,6 +325,9 @@ export async function activateAccount(req, res) {
     let user = await Users.findOne({ activateToken: token });
     if (!user) {
       user = await Commerce.findOne({ activateToken: token });
+    }
+    if (!user) {
+      user = await Delivery.findOne({ activateToken: token });
     }
 
     if (!user) {
@@ -335,4 +358,152 @@ export function logout(req, res) {
     res.clearCookie("connect.sid");
     return res.redirect("/user/login");
   });
+}
+
+export function renderForgotPasswordPage(req, res) {
+  return res.render("auth/forgot-password", {
+    layout: "anonymous-layout",
+    "page-title": "Restablecer contraseña",
+    formData: { identifier: "" },
+    errors: [],
+    success: false
+  });
+}
+
+export async function forgotPassword(req, res) {
+  const identifier = sanitizeText(req.body.identifier).toLowerCase();
+  const errors = [];
+
+  if (!identifier) errors.push("El usuario o correo es obligatorio.");
+
+  if (errors.length > 0) {
+    return res.render("auth/forgot-password", {
+      layout: "anonymous-layout",
+      "page-title": "Restablecer contraseña",
+      formData: { identifier },
+      errors,
+      success: false
+    });
+  }
+
+  try {
+    const user = await Users.findOne({
+      $or: [{ email: identifier }, { username: identifier }]
+    });
+
+    // Si no existe igual mostramos success para no revelar si el usuario existe
+    if (user) {
+      const resetToken = randomBytes(32).toString("hex");
+      user.resetToken = resetToken;
+      user.resetTokenExpiration = new Date(Date.now() + 1000 * 60 * 60); // 1 hora
+      await user.save();
+
+      const resetLink = `${getBaseUrl(req)}/user/reset-password/${resetToken}`;
+      await sendEmail({
+        to: user.email,
+        subject: "Restablece tu contraseña en AppCenar",
+        html: `
+          <h2>Hola, ${user.name}</h2>
+          <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+          <p>Haz click en el siguiente enlace para continuar:</p>
+          <p><a href="${resetLink}">Restablecer contraseña</a></p>
+          <p>Este enlace expira en 1 hora.</p>
+        `
+      });
+    }
+
+    return res.render("auth/forgot-password", {
+      layout: "anonymous-layout",
+      "page-title": "Restablecer contraseña",
+      formData: { identifier: "" },
+      errors: [],
+      success: true
+    });
+  } catch (ex) {
+    console.error("Error en forgot password", ex);
+    return res.render("auth/forgot-password", {
+      layout: "anonymous-layout",
+      "page-title": "Restablecer contraseña",
+      formData: { identifier },
+      errors: ["No se pudo procesar la solicitud."],
+      success: false
+    });
+  }
+}
+export async function renderResetPasswordPage(req, res) {
+  const token = sanitizeText(req.params.token);
+
+  const user = await Users.findOne({
+    resetToken: token,
+    resetTokenExpiration: { $gt: new Date() }
+  });
+
+  if (!user) {
+    return res.status(404).render("404", {
+      layout: "anonymous-layout",
+      title: "Enlace invalido o expirado"
+    });
+  }
+
+  return res.render("auth/reset-password", {
+    layout: "anonymous-layout",
+    "page-title": "Nueva contraseña",
+    passwordToken: token,
+    userId: user._id,
+    errors: []
+  });
+}
+
+export async function resetPassword(req, res) {
+  const token = sanitizeText(req.body.passwordToken);
+  const userId = sanitizeText(req.body.userId);
+  const password = typeof req.body.password === "string" ? req.body.password : "";
+  const confirmPassword = typeof req.body.confirmPassword === "string" ? req.body.confirmPassword : "";
+  const errors = [];
+
+  if (!password) errors.push("La contrasena es obligatoria.");
+  if (!confirmPassword) errors.push("Debes confirmar la contrasena.");
+  if (password && password.length < 8) errors.push("La contrasena debe tener al menos 8 caracteres.");
+  if (password && confirmPassword && password !== confirmPassword) errors.push("Las contrasenas no coinciden.");
+
+  if (errors.length > 0) {
+    return res.render("auth/reset-password", {
+      layout: "anonymous-layout",
+      "page-title": "Nueva contraseña",
+      passwordToken: token,
+      userId,
+      errors
+    });
+  }
+
+  try {
+    const user = await Users.findOne({
+      _id: userId,
+      resetToken: token,
+      resetTokenExpiration: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(404).render("404", {
+        layout: "anonymous-layout",
+        title: "Enlace invalido o expirado"
+      });
+    }
+
+    user.password = hashPassword(password);
+    user.resetToken = null;
+    user.resetTokenExpiration = null;
+    await user.save();
+
+    return res.redirect("/user/login?activated=1");
+  } catch (ex) {
+    console.error("Error resetting password", ex);
+    return res.render("auth/reset-password", {
+      layout: "anonymous-layout",
+      "page-title": "Nueva contraseña",
+      passwordToken: token,
+      userId,
+      errors: ["No se pudo restablecer la contrasena."]
+    });
+  }
 }
