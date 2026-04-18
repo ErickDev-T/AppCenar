@@ -24,6 +24,7 @@ function handleValidationErrors(req, res, next) {
     req.flash("errors", errors);
     return res.redirect("/commerce/dashboard");
   }
+  return next();
 }
 
 router.post(

@@ -282,7 +282,8 @@ export async function PostCreateClient(req, res, next) {
     });
 
     req.flash("success", "Pedido realizado correctamente");
-    return res.redirect("/client/dashboard");
+    return res.redirect("/client/dashboard"
+    );
   } catch (err) {
     console.error("Error creating client order:", err);
     req.flash("errors", "Error creating order");
@@ -300,16 +301,19 @@ export async function GetDetail(req, res, next) {
       .lean();
 
     if (!order) {
-      req.flash("errors", "Order not found");
+      req.flash("errors", "Pedido no encontrado");
       return res.redirect("/client/orders");
     }
 
-    return res.render("client/orders/detail", {
-      order,
-      "page-title": "Detalle del pedido"
+    return res.render("client/orders/detail", {  
+      layout: "client-layout",                 
+      title: "Detalle del pedido",
+      user: req.session?.user ?? null,
+      order
     });
   } catch (err) {
     console.error("Error fetching order detail:", err);
-    req.flash("errors", "Error fetching order detail");
+    req.flash("errors", "Error al cargar el detalle del pedido");
+    return res.redirect("/client/orders");       
   }
 }
