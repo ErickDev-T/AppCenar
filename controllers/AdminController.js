@@ -25,6 +25,7 @@ export async function getAdminDashboard(req, res, next) {
                 username: 1,
                 email: 1,
                 cedula: 1,
+                phone: 1,
                 isActive: 1
             }
         ).lean();
@@ -52,6 +53,7 @@ export async function getAdminDashboard(req, res, next) {
 export async function getAdminSave(req, res, next) {
     return res.render("Admin/save", {
         editMode: false,
+        formData: {},
         layout: "admin-layout",
         "page-title": "Agregar Administrador"
     });
@@ -63,11 +65,14 @@ export async function postAdminSave(req, res, next) {
         lastName: sanitizeText(req.body.lastName),
         username: sanitizeText(req.body.username),
         email: sanitizeText(req.body.email).toLowerCase(),
-        cedula: sanitizeText(req.body.cedula)
+        cedula: sanitizeText(req.body.cedula),
+        phone: sanitizeText(req.body.phone)
     };
 
     const password =
-        typeof req.body.password === "string" ? req.body.password.trim() : "";
+        typeof req.body.password === "string"
+            ? req.body.password.trim()
+            : "";
 
     const confirmPassword =
         typeof req.body.confirmPassword === "string"
@@ -78,11 +83,13 @@ export async function postAdminSave(req, res, next) {
 
     if (!formData.name) errors.push("El nombre es obligatorio.");
     if (!formData.lastName) errors.push("El apellido es obligatorio.");
-    if (!formData.username) errors.push("El username es obligatorio.");
+    if (!formData.username) errors.push("El usuario es obligatorio.");
     if (!formData.email) errors.push("El correo es obligatorio.");
     if (!formData.cedula) errors.push("La cédula es obligatoria.");
+    if (!formData.phone) errors.push("El teléfono es obligatorio.");
     if (!password) errors.push("La contraseña es obligatoria.");
-    if (!confirmPassword) errors.push("Debes confirmar la contraseña.");
+    if (!confirmPassword)
+        errors.push("Debes confirmar la contraseña.");
 
     if (
         formData.email &&
@@ -110,7 +117,7 @@ export async function postAdminSave(req, res, next) {
         }
 
         if (usernameExists) {
-            errors.push("Ese username ya está en uso.");
+            errors.push("Ese usuario ya está en uso.");
         }
 
         if (errors.length > 0) {
@@ -133,7 +140,7 @@ export async function postAdminSave(req, res, next) {
         req.flash("success", "Administrador creado correctamente.");
         return res.redirect("/Admin");
     } catch (error) {
-        console.error("Error creando admin:", error);
+        console.error("Error creando administrador:", error);
 
         return res.render("Admin/save", {
             editMode: false,
@@ -170,7 +177,7 @@ export async function getAdminEdit(req, res, next) {
             "page-title": `Editar Administrador ${admin.name}`
         });
     } catch (error) {
-        console.error("Error fetching admin for edit:", error);
+        console.error("Error cargando administrador:", error);
 
         req.flash("error", "Error cargando el administrador.");
         return res.redirect("/Admin");
@@ -185,11 +192,14 @@ export async function postAdminEdit(req, res, next) {
         lastName: sanitizeText(req.body.lastName),
         username: sanitizeText(req.body.username),
         email: sanitizeText(req.body.email).toLowerCase(),
-        cedula: sanitizeText(req.body.cedula)
+        cedula: sanitizeText(req.body.cedula),
+        phone: sanitizeText(req.body.phone)
     };
 
     const password =
-        typeof req.body.password === "string" ? req.body.password.trim() : "";
+        typeof req.body.password === "string"
+            ? req.body.password.trim()
+            : "";
 
     const confirmPassword =
         typeof req.body.confirmPassword === "string"
@@ -200,9 +210,10 @@ export async function postAdminEdit(req, res, next) {
 
     if (!formData.name) errors.push("El nombre es obligatorio.");
     if (!formData.lastName) errors.push("El apellido es obligatorio.");
-    if (!formData.username) errors.push("El username es obligatorio.");
+    if (!formData.username) errors.push("El usuario es obligatorio.");
     if (!formData.email) errors.push("El correo es obligatorio.");
     if (!formData.cedula) errors.push("La cédula es obligatoria.");
+    if (!formData.phone) errors.push("El teléfono es obligatorio.");
 
     if (
         formData.email &&
@@ -248,15 +259,15 @@ export async function postAdminEdit(req, res, next) {
         }
 
         if (usernameExists) {
-            errors.push("Ese username ya está en uso.");
+            errors.push("Ese usuario ya está en uso.");
         }
 
         if (errors.length > 0) {
             return res.render("Admin/save", {
                 editMode: true,
                 admin: {
-                    ...formData,
-                    _id: id
+                    _id: id,
+                    ...formData
                 },
                 errors,
                 layout: "admin-layout",
@@ -277,7 +288,7 @@ export async function postAdminEdit(req, res, next) {
         req.flash("success", "Administrador actualizado correctamente.");
         return res.redirect("/Admin");
     } catch (error) {
-        console.error("Error updating admin:", error);
+        console.error("Error actualizando administrador:", error);
 
         req.flash("error", "Error actualizando el administrador.");
         return res.redirect("/Admin");
@@ -290,7 +301,6 @@ export async function postAdminEdit(req, res, next) {
 
 export async function postAdminStatus(req, res, next) {
     const adminId = req.params.id;
-    const isActive = req.body.isActive === "true";
 
     try {
         const loggedUserId = req.session.user?._id;
@@ -310,24 +320,24 @@ export async function postAdminStatus(req, res, next) {
             return res.redirect("/Admin");
         }
 
-        await Users.findByIdAndUpdate(adminId, {
-            isActive
-        });
+        const newStatus = req.body.isActive === "true";
+
+        admin.isActive = newStatus;
+        await admin.save();
 
         req.flash(
             "success",
-            isActive
+            newStatus
                 ? "Administrador activado correctamente."
                 : "Administrador desactivado correctamente."
         );
 
         return res.redirect("/Admin");
     } catch (error) {
-        console.error("Error updating admin status:", error);
+        console.error("Error actualizando estado:", error);
 
         req.flash("error", "Error al actualizar el estado del administrador.");
         return res.redirect("/Admin");
     }
 }
-
 //#endregion
