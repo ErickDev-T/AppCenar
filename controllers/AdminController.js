@@ -9,7 +9,7 @@ export async function getAdminDashboard(req, res, next)
         const result = await Users.find({ role: Roles.ADMIN }, {name: 1, lastName: 1, username: 1, email: 1, cedula: 1, isActive: 1}).lean();
         const admins = result || [];
         
-        res.render("/Admin", {
+        res.render("Admin/index", {
             adminList: admins,
             hasAdmin: admins.length > 0,
             "page-title": "Admin Dashboard"

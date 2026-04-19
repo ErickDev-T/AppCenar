@@ -5,6 +5,6 @@ import { Roles } from '../utils/enums/roles.js';
 
 const router = express.Router();
 
-router.get('/client-dashboard', getClientsDashboard);
+router.get('/', getClientsDashboard);
 
 export default router;

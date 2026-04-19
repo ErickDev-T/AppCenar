@@ -16,7 +16,7 @@ export async function getDeliveryDashboard(req, res, next) {
 
     const deliveries = result || [];
 
-    res.render("Admin/delivery-list", {
+    res.render("AdminDelivery/index", {
       deliveriesList: deliveries,
       hasDeliveries: deliveries.length > 0,
       layout: "admin-layout",
@@ -38,7 +38,7 @@ export async function postStatusDelivery(req, res, next) {
   try {
     await Users.findByIdAndUpdate(deliveryId, { isActive: status });
     res.flash("success", "Delivery status updated successfully.");
-    res.redirect("/delivery-dashboard");
+    res.redirect("AdminDelivery/index");
   } catch (error) {
     console.error("Error updating delivery status:", error);
     res.flash("error", "An error occurred while updating delivery status.");

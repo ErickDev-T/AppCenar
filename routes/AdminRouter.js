@@ -11,7 +11,7 @@ import {
 
 const router = express.Router();
 
-router.get("/admin", getAdminDashboard);
+router.get("/", getAdminDashboard);
 
 router.get("/admin/create", getAdminSave);
 router.post("/admin/create", postAdminSave);

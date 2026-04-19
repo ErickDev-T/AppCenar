@@ -16,9 +16,10 @@ export async function getCommerceDashboard(req, res, next) {
 
     const commerces = result || [];
 
-    res.render("Admin/commerce-dashboard", {
+    res.render("AdminCommerce/index", {
         commercesList: commerces,
         hasCommerces: commerces.length > 0,
+        layout: "admin-layout",
         "page-title": "Commerce Dashboard"
     });
 

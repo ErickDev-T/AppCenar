@@ -14,7 +14,7 @@ export async function getClientsDashboard(req, res, next) {
 
     const clients = result || [];
 
-    res.render("Admin/client-dashboard", {
+    res.render("AdminClient/index", {
       clientsList: clients,
       hasClients: clients.length > 0,
       layout: "admin-layout",
@@ -23,7 +23,7 @@ export async function getClientsDashboard(req, res, next) {
   } catch (err) {
     console.error("Error loading client dashboard:", err);
     req.flash("error", "Error al cargar el dashboard del cliente.");
-    return res.redirect("/Admin");
+    return res.redirect("AdminClient/index");
   }
 }
 
@@ -34,7 +34,7 @@ export async function postStatusClient(req, res, next) {
   try {
     await Users.findByIdAndUpdate(clientId, { isActive: status });
     req.flash("success", "Client status updated successfully.");
-    res.redirect("/client/client-dashboard");
+    res.redirect("AdminClient/index");
   } catch (error) {
     console.error("Error updating client status:", error);
     res.flash("error", "An error occurred while updating client status.");

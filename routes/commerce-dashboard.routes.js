@@ -3,6 +3,6 @@ import { getCommerceDashboard } from "../controllers/CommerceDashboard.controlle
 
 const router = express.Router();
 
-router.get("/commercer-dashboard", getCommerceDashboard);
+router.get("/", getCommerceDashboard);
 
 export default router;

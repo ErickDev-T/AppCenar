@@ -4,7 +4,7 @@ import { getDeliveryDashboard, postStatusDelivery } from '../controllers/Deliver
 
 const router = express.Router();
 
-router.get("/delivery-list", getDeliveryDashboard);
-router.post("/delivery/DeliveryDashboardAdmin", postStatusDelivery);
+router.get("/", getDeliveryDashboard);
+router.post("/", postStatusDelivery);
 
 export default router;
