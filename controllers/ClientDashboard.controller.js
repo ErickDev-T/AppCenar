@@ -6,7 +6,7 @@ export async function getClientsDashboard(req, res, next) {
   try {
     const result = await Users.find(
       { role: Roles.CLIENT },
-      { name: 1, lastName: 1, email: 1, isActive: 1 },
+      { name: 1, lastName: 1, email: 1, phone: 1, isActive: 1 },
     ).lean();
     for (const client of result) {
       client.ordersCount = await Order.countDocuments({ clientId: client._id });
@@ -28,15 +28,28 @@ export async function getClientsDashboard(req, res, next) {
 }
 
 export async function postStatusClient(req, res, next) {
-  const clientId = req.body;
+  const clientId = req.params.id;
   const status = req.body.status === "true";
 
   try {
     await Users.findByIdAndUpdate(clientId, { isActive: status });
-    req.flash("success", "Client status updated successfully.");
-    res.redirect("AdminClient/index");
+
+    req.flash(
+      "success",
+      status
+        ? "Cliente activado correctamente."
+        : "Cliente desactivado correctamente."
+    );
+
+    return res.redirect("AdminClient/index");
   } catch (error) {
     console.error("Error updating client status:", error);
-    res.flash("error", "An error occurred while updating client status.");
+
+    req.flash(
+      "error",
+      "Ocurrió un error al actualizar el estado del cliente."
+    );
+
+    return res.redirect("AdminClient/index");
   }
 }

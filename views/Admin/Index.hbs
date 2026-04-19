@@ -35,28 +35,27 @@
                 </p>
 
                 <p class="text-center mb-2">
-                    <strong>Estado:</strong> 
+                    <strong>Estado:</strong>
                     {{#if this.isActive}}
-                        <span class="text-success">Activo</span>
+                    <span class="text-success">Activo</span>
                     {{else}}
-                        <span class="text-danger">Inactivo</span>
+                    <span class="text-danger">Inactivo</span>
                     {{/if}}
                 </p>
 
                 <div class="d-flex justify-content-between mt-2">
 
-                    <a href="/admin/edit/{{this._id}}" 
-                       class="btn btn-primary btn-sm">
+                    <a href="/admin/edit/{{this._id}}" class="btn btn-primary btn-sm">
                         Editar
                     </a>
 
                     <form action="/admin/status/{{this._id}}" method="post">
 
-                        <input type="hidden" name="status" value="{{#if this.isActive}}false{{else}}true{{/if}}">
+                        <input type="hidden" name="isActive" value="{{#if this.isActive}}false{{else}}true{{/if}}">
 
-                        <button type="submit" 
-                                class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}"
-                                onclick="return confirm('¿Seguro que deseas cambiar el estado de este administrador?')">
+                        <button type="submit"
+                            class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}"
+                            onclick="return confirm('¿Seguro que deseas cambiar el estado de este administrador?')">
 
                             {{#if this.isActive}}Inactivar{{else}}Activar{{/if}}
 
