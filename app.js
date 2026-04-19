@@ -23,6 +23,7 @@ import commerceDashboard from "./routes/commerce-dashboard.routes.js"
 import Configuration from "./routes/ConfigurationRouter.js";
 import CommerceType from "./routes/CommerceTypeRouter.js";
 import Admin from "./routes/AdminRouter.js";
+import AdminDashboard from "./routes/AdminDashboard.routes.js";
 
 
 const app = express();
@@ -54,12 +55,12 @@ app.use(
 app.use(flash());
 app.use(attachAuthState);
 
+app.use("/", dashboardRouter);
 app.use("/user", authRouter);
 app.use("/client", clientRouter);
 app.use("/commerce", commerceRouter);
 app.use("/delivery", deliveryRouter);
 app.use("/order", orderRouter);
-app.use("/", dashboardRouter);
 app.use("/address", addressRouter);
 app.use("/order", orderRouter);
 app.use("/", dashboardRouter);
@@ -69,6 +70,7 @@ app.use("/Admin", Admin);
 app.use("/AdminDelivery", deliveryList);
 app.use("/AdminCommerce", commerceDashboard);
 app.use("/AdminClient", clientDashboard);
+app.use("/AdminDashboard", AdminDashboard);
 
 
 

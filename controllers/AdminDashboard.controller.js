@@ -12,7 +12,7 @@ export async function getHomeDashboard(req, res, next)
         const Clients = await Users.countDocuments({ role: Roles.CLIENT });
         const Deliverys = await Users.countDocuments({ role: Roles.DELIVERY });
 
-        res.render("Admin/AdminDashboard", {
+        res.render("AdminDashboard/index", {
             totalOrders : Orders,
             totalCommerce : Commerces,
             totalClients : Clients,
@@ -25,6 +25,6 @@ export async function getHomeDashboard(req, res, next)
     {
         console.error("Error loading dashboard:", err);
         req.flash("error", "Error al cargar el dashboard.");
-        return res.redirect("/Admin");
+        return res.redirect("AdminDashboard/index");
     }
 }

@@ -6,7 +6,7 @@ import { getHomeDashboard } from "../controllers/AdminDashboard.controller.js";
 const router = express.Router();
 
 router.get("/", requireAuth, getDashboard);
-/* router.get("/client", requireAuth, getDashboard); */
+router.get("/client", requireAuth, getDashboard); 
 router.get("/delivery", requireAuth, getDashboard);
 router.get("/commerce", requireAuth, getDashboard);
 router.get("/Admin", requireAuth, getHomeDashboard);
