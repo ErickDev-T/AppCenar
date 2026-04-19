@@ -1,18 +1,16 @@
 <div class="container mt-4">
 
-    <div class="row mb-3">
-        <div class="col-12 col-sm-4">
-            <a class="btn btn-success w-100" href="/Admin/create">
-                Nuevo Administrador
-            </a>
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-center">Dashboard de Clientes</h2>
         </div>
     </div>
 
-    {{#if hasAdmin}}
+    {{#if hasClients}}
 
     <div class="row">
 
-        {{#each adminList}}
+        {{#each clientsList}}
 
         <div class="col-md-4 mb-3">
 
@@ -23,15 +21,15 @@
                 </h5>
 
                 <p class="text-center mb-1">
-                    <strong>Usuario:</strong> {{this.username}}
-                </p>
-
-                <p class="text-center mb-1">
                     <strong>Email:</strong> {{this.email}}
                 </p>
 
-                <p class="text-center mb-2">
-                    <strong>Cédula:</strong> {{this.cedula}}
+                <p class="text-center mb-1">
+                    <strong>Teléfono:</strong> {{this.phone}}
+                </p>
+
+                <p class="text-center mb-1">
+                    <strong>Pedidos:</strong> {{this.ordersCount}}
                 </p>
 
                 <p class="text-center mb-2">
@@ -43,22 +41,16 @@
                     {{/if}}
                 </p>
 
-                <div class="d-flex justify-content-between mt-2">
+                <div class="d-flex justify-content-center mt-2">
 
-                    <a href="/admin/edit/{{this._id}}" class="btn btn-primary btn-sm">
-                        Editar
-                    </a>
+                    <form action="/AdminClient/status/{{this._id}}" method="post">
 
-                    <form action="/admin/status/{{this._id}}" method="post">
-
-                        <input type="hidden" name="isActive" value="{{#if this.isActive}}false{{else}}true{{/if}}">
+                        <input type="hidden" name="status" value="{{#if this.isActive}}false{{else}}true{{/if}}">
 
                         <button type="submit"
                             class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}"
-                            onclick="return confirm('¿Seguro que deseas cambiar el estado de este administrador?')">
-
+                            onclick="return confirm('¿Seguro que deseas cambiar el estado de este cliente?')">
                             {{#if this.isActive}}Inactivar{{else}}Activar{{/if}}
-
                         </button>
 
                     </form>
@@ -76,7 +68,7 @@
     {{else}}
 
     <div class="text-center mt-5">
-        <h3 class="text-muted">No hay administradores</h3>
+        <h3 class="text-muted">No hay clientes registrados</h3>
     </div>
 
     {{/if}}

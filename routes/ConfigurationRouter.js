@@ -11,12 +11,12 @@ import
 
 const router = express.Router();
 
-router.get('/configuration', getConfigurations);
+router.get('/', getConfigurations);
 
-router.get('/configuration/save', getConfigurationSave);
-router.post('/configuration/save', postConfigurationSave);
+router.get('/save', getConfigurationSave);
+router.post('/save', postConfigurationSave);
 
-router.get('/configuration/edit/:id', getConfigurationEdit);
-router.post('/configuration/edit', postConfigurationEdit);
+router.get('/edit/:id', getConfigurationEdit);
+router.post('/edit', postConfigurationEdit);
 
 export default router;
