@@ -9,6 +9,6 @@ router.get("/", requireAuth, getDashboard);
 router.get("/client", requireAuth, getDashboard); 
 router.get("/delivery", requireAuth, getDashboard);
 router.get("/commerce", requireAuth, getDashboard);
-router.get("/Admin", requireAuth, getHomeDashboard);
+router.get("/AdminDashboard", requireAuth, getHomeDashboard);
 
 export default router;

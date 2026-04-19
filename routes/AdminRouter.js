@@ -13,13 +13,13 @@ const router = express.Router();
 
 router.get("/", getAdminDashboard);
 
-router.get("/admin/create", getAdminSave);
-router.post("/admin/create", postAdminSave);
+router.get("/create", getAdminSave);
+router.post("/create", postAdminSave);
 
-router.get("/admin/edit/:id", getAdminEdit);
-router.post("/admin/edit", postAdminEdit);
+router.get("/edit/:id", getAdminEdit);
+router.post("/edit", postAdminEdit);
 
-router.post("/admin/status/:id", postAdminStatus);
+router.post("/status/:id", postAdminStatus);
 
 
 export default router;
