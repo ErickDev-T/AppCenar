@@ -20,6 +20,7 @@
     "qa": "cross-env NODE_ENV=qa nodemon app.js",
     "prod": "node app.js",
     "seed:commerce-type": "node scripts/seed-commerce-type.js",
+    "seed:test-orders": "node scripts/seed-test-orders.js",
     "migrate:deliveries": "node scripts/migrate-delivery-to-separate-collection.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

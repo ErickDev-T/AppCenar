@@ -15,7 +15,8 @@ const orderSchema = new mongoose.Schema(
     deliveryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Delivery",
-      required: true,
+      required: false,
+      default: null
     },
     addressId: {
       type: mongoose.Schema.Types.ObjectId,

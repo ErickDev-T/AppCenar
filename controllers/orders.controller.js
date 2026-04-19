@@ -26,6 +26,17 @@ export async function getOrdersByDelivery(deliveryId) {
     .lean();
 }
 
+export async function getDeliveryOrderById(orderId, deliveryId) {
+  if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(deliveryId)) {
+    return null;
+  }
+
+  return await Orders.findOne({ _id: orderId, deliveryId })
+    .populate({ path: "commerceId", model: "Commerce", select: "name profileImage email" })
+    .populate({ path: "addressId", model: "Addresses", select: "name description" })
+    .lean();
+}
+
 export async function getCommerceOrderById(orderId, commerceId) {
   if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(commerceId)) {
     return null;
@@ -42,10 +53,13 @@ export async function getCommerceOrderById(orderId, commerceId) {
 }
 
 export async function getAvailableDeliveries() {
+  const busyDeliveries = await Orders.distinct("deliveryId", { status: "en proceso" });
+
   return await Delivery.find({
     role: Roles.DELIVERY,
     isActive: true,
-    deliveryStatus: "disponible"
+    deliveryStatus: "disponible",
+    _id: { $nin: busyDeliveries }
   })
     .sort({ createdAt: -1 })
     .select("name lastName username email")
@@ -53,11 +67,13 @@ export async function getAvailableDeliveries() {
 }
 
 export async function assignDeliveryToCommerceOrder({ orderId, commerceId, deliveryId }) {
-  if (
-    !mongoose.Types.ObjectId.isValid(orderId) ||
-    !mongoose.Types.ObjectId.isValid(commerceId) ||
-    !mongoose.Types.ObjectId.isValid(deliveryId)
-  ) {
+  const hasDeliveryId = typeof deliveryId === "string" && deliveryId.trim().length > 0;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(commerceId)) {
+    return { ok: false, code: "invalid_ids" };
+  }
+
+  if (hasDeliveryId && !mongoose.Types.ObjectId.isValid(deliveryId)) {
     return { ok: false, code: "invalid_ids" };
   }
 
@@ -66,14 +82,39 @@ export async function assignDeliveryToCommerceOrder({ orderId, commerceId, deliv
 
   if (order.status !== "pendiente") return { ok: false, code: "invalid_status" };
 
-  const delivery = await Delivery.findOne({
-    _id: deliveryId,
-    role: Roles.DELIVERY,
-    isActive: true,
-    deliveryStatus: "disponible"
-  });
+  if (order.deliveryId) {
+    return { ok: false, code: "delivery_already_assigned" };
+  }
+
+  let delivery = null;
+
+  if (hasDeliveryId) {
+    delivery = await Delivery.findOne({
+      _id: deliveryId,
+      role: Roles.DELIVERY,
+      isActive: true,
+      deliveryStatus: "disponible"
+    });
+  } else {
+    const busyDeliveries = await Orders.distinct("deliveryId", { status: "en proceso" });
+    delivery = await Delivery.findOne({
+      role: Roles.DELIVERY,
+      isActive: true,
+      deliveryStatus: "disponible",
+      _id: { $nin: busyDeliveries }
+    }).sort({ createdAt: 1 });
+  }
 
   if (!delivery) return { ok: false, code: "delivery_not_available" };
+
+  const hasInProcessOrder = await Orders.exists({
+    deliveryId: delivery._id,
+    status: "en proceso"
+  });
+
+  if (hasInProcessOrder) {
+    return { ok: false, code: "delivery_not_available" };
+  }
 
   order.deliveryId = delivery._id;
   order.status = "en proceso";
@@ -85,7 +126,41 @@ export async function assignDeliveryToCommerceOrder({ orderId, commerceId, deliv
   return { ok: true };
 }
 
-// Crear orden desde comercio
+
+export async function completeOrderByDelivery({ orderId, deliveryId }) {
+  if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(deliveryId)) {
+    return { ok: false, code: "invalid_ids" };
+  }
+
+  const order = await Orders.findOne({ _id: orderId, deliveryId });
+  if (!order) {
+    return { ok: false, code: "order_not_found" };
+  }
+
+  if (order.status === "completado") {
+    return { ok: false, code: "already_completed" };
+  }
+
+  if (order.status !== "en proceso") {
+    return { ok: false, code: "invalid_status" };
+  }
+
+  order.status = "completado";
+  await order.save();
+
+  const hasAnotherInProcessOrder = await Orders.exists({
+    deliveryId,
+    status: "en proceso"
+  });
+
+  await Delivery.findByIdAndUpdate(deliveryId, {
+    deliveryStatus: hasAnotherInProcessOrder ? "ocupado" : "disponible"
+  });
+
+  return { ok: true };
+}
+
+
 export async function PostCreate(req, res, next) {
   const { ClientId, DeliveryId, AddressId, Products: OrderProducts } = req.body;
   const sessionCommerceId = req.user?.id;
@@ -101,10 +176,20 @@ export async function PostCreate(req, res, next) {
     const deliveryObjectId = new mongoose.Types.ObjectId(DeliveryId);
     const addressObjectId = new mongoose.Types.ObjectId(AddressId);
 
-    const [clientExists, deliveryExists] = await Promise.all([
+    const [clientExists, delivery] = await Promise.all([
       Users.exists({ _id: clientObjectId, role: Roles.CLIENT }),
-      Delivery.exists({ _id: deliveryObjectId, role: Roles.DELIVERY })
+      Delivery.findOne({
+        _id: deliveryObjectId,
+        role: Roles.DELIVERY,
+        isActive: true,
+        deliveryStatus: "disponible"
+      })
     ]);
+
+    const deliveryHasInProcessOrder = await Orders.exists({
+      deliveryId: deliveryObjectId,
+      status: "en proceso"
+    });
 
     const addressesCollection = mongoose.connection.db.collection("Addresses");
     const ownershipCandidates = [clientObjectId, ClientId];
@@ -123,8 +208,14 @@ export async function PostCreate(req, res, next) {
 
     const businessErrors = [];
     if (!clientExists) businessErrors.push("El cliente seleccionado no existe.");
-    if (!deliveryExists) businessErrors.push("El delivery seleccionado no existe.");
-    if (!addressBelongsToClient) businessErrors.push("La direccion no existe o no pertenece al cliente.");
+
+    if (!delivery) businessErrors.push("El delivery seleccionado no esta disponible.");
+    if (deliveryHasInProcessOrder) {
+      businessErrors.push("El delivery seleccionado ya tiene un pedido en proceso.");
+    }
+    if (!addressBelongsToClient) {
+      businessErrors.push("La direccion no existe o no pertenece al cliente seleccionado.");
+    }
 
     if (businessErrors.length > 0) {
       req.flash("errors", businessErrors);
@@ -146,8 +237,11 @@ export async function PostCreate(req, res, next) {
       subtotal,
       itbis: itbisAmount,
       total,
-      status: "pendiente"
+      status: "en proceso"
     });
+
+    delivery.deliveryStatus = "ocupado";
+    await delivery.save();
 
     req.flash("success", "Orden creada y asignada correctamente");
     return res.redirect("/commerce/dashboard");

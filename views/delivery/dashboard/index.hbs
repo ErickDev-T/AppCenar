@@ -9,13 +9,14 @@
   <div class="table-responsive">
     <table class="table table-sm table-striped align-middle">
       <thead>
-        <tr>
+        <tr role="link" tabindex="0" style="cursor: pointer;" onclick="window.location.href='/delivery/orders/{{id}}'" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='/delivery/orders/{{id}}'; }">
           <th>Logo</th>
           <th>Estado</th>
           <th>Comercio</th>
           <th>Total</th>
           <th>Cantidad de productos</th>
           <th>Fecha y hora</th>
+          <th>Detalle</th>
         </tr>
       </thead>
       <tbody>
@@ -34,20 +35,17 @@
             {{/if}}
           </td>
           <td>
-            {{#if (eq status "pendiente")}}
-              <span class="badge text-bg-warning">Pendiente</span>
-            {{/if}}
-            {{#if (eq status "en proceso")}}
-              <span class="badge text-bg-primary">En proceso</span>
-            {{/if}}
-            {{#if (eq status "completado")}}
-              <span class="badge text-bg-success">Completado</span>
-            {{/if}}
+            <span class="badge {{statusBadgeClass}}">{{statusLabel}}</span>
           </td>
           <td>{{commerceName}}</td>
           <td>{{totalLabel}}</td>
           <td>{{productsCount}}</td>
           <td>{{createdAtLabel}}</td>
+          <td>
+            <a href="/delivery/orders/{{id}}" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+              Ver detalle
+            </a>
+          </td>
         </tr>
         {{/each}}
       </tbody>
