@@ -4,17 +4,19 @@ import Configuration from "../models/ConfigurationModel.js";
 
 export async function getConfigurations(req, res, next) {
   try {
-    const result = await Configuration.find({});
+    const result = await Configuration.find({}).lean();
     const configurations = result || [];
 
-    res.render("/configurations", {
+    res.render("configurations/index", {
       configurationList: configurations,
       hasconfiguration: configurations.length > 0,
+      "layout" : "admin-layout",
       "page-title": "Configuration Home",
     });
   } catch (err) {
     console.error("Error fetching configuration:", err);
-    res.flash("error", "An error occurred while fetching the configuration.");
+    req.flash("error", "An error occurred while fetching the configuration.");
+    res.redirect("/configurations");
   }
 }
 
@@ -26,11 +28,13 @@ export async function getConfigurationSave(req, res, next) {
   try {
     res.render("configurations/save", {
       editMode: false,
+      layout: "admin-layout",
       "page-title": "Add Configuration",
     });
   } catch (err) {
-    console.error("Error fetching configuration:", err);
-    res.flash("error", "An error occurred while fetching the configuration.");
+    console.error("Error loading save view:", err);
+    req.flash("error", "An error occurred while loading the form.");
+    res.redirect("/configurations");
   }
 }
 
@@ -39,11 +43,14 @@ export async function postConfigurationSave(req, res, next) {
 
   try {
     await Configuration.create({ itbis });
-    res.flash("success", "Configuration saved successfully.");
+
+    req.flash("success", "Configuration saved successfully.");
     res.redirect("/configurations");
   } catch (err) {
     console.error("Error saving configuration:", err);
-    res.flash("error", "An error occurred while saving the configuration.");
+
+    req.flash("error", "An error occurred while saving the configuration.");
+    res.redirect("/configurations/save");
   }
 }
 
@@ -56,43 +63,47 @@ export async function getConfigurationEdit(req, res, next) {
 
   try {
     const configuration = await Configuration.findOne({ _id: id }).lean();
+
     if (!configuration) {
-      res.flash("error", "Configuration not found.");
+      req.flash("error", "Configuration not found.");
       return res.redirect("/configurations");
     }
 
     res.render("configurations/save", {
       editMode: true,
-      configuration: configuration,
-      "page-title": `Edit Configuration`,
+      configuration,
+      layout: "admin-layout",
+      "page-title": "Edit Configuration",
     });
   } catch (err) {
     console.error("Error fetching configuration:", err);
-    res.flash("error", "An error occurred while fetching the configuration.");
+
+    req.flash("error", "An error occurred while fetching the configuration.");
+    res.redirect("/configurations");
   }
 }
 
-export async function postConfigurationEdit(req, res, next) 
-{
-    const {id, itbis} = req.body;
+export async function postConfigurationEdit(req, res, next) {
+  const { id, itbis } = req.body;
 
-    try
-    {
-        const configuration = await Configuration.findOne({ _id: id });
-        if(!configuration)        {
-            res.flash("error", "Configuration not found.");
-            return res.redirect("/configurations");
-        }
+  try {
+    const configuration = await Configuration.findById(id);
 
-        await Configuration.findByIdAndUpdate(id, { itbis });
-        res.flash("success", "Configuration updated successfully.");
-        res.redirect("/configuration");
+    if (!configuration) {
+      req.flash("error", "Configuration not found.");
+      return res.redirect("/configurations");
     }
-    catch (err)
-    {
-        console.error("Error updating configuration:", err);
-        res.flash("error", "An error occurred while updating the configuration.");
-    }
+
+    await Configuration.findByIdAndUpdate(id, { itbis });
+
+    req.flash("success", "Configuration updated successfully.");
+    res.redirect("/configurations");
+  } catch (err) {
+    console.error("Error updating configuration:", err);
+
+    req.flash("error", "An error occurred while updating the configuration.");
+    res.redirect(`/configurations/edit/${id}`);
+  }
 }
 
 //#endregion

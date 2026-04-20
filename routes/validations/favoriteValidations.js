@@ -1,17 +1,17 @@
 import { body, param } from "express-validator";
 
 export const validateToggleFavorite = [
-  body("comercioId")
+  body("CommerceId")
     .trim()
     .notEmpty()
-    .withMessage("Comercio ID is required")
+    .withMessage("Commerce ID is required")
     .isMongoId()
-    .withMessage("Invalid comercio ID format")
+    .withMessage("Invalid commerce ID format")
     .escape(),
 ];
 
 export const validateDeleteFavorite = [
-  body("favoriteId")
+  body("FavoriteId")
     .trim()
     .notEmpty()
     .withMessage("Favorite ID is required")

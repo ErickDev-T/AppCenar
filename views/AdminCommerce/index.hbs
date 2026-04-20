@@ -1,0 +1,86 @@
+<div class="container mt-4">
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-center">Dashboard de Comercios</h2>
+        </div>
+    </div>
+
+    {{#if hasCommerces}}
+
+    <div class="row">
+
+        {{#each commercesList}}
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card shadow-sm p-3 text-center">
+
+                {{#if this.profileImage}}
+                <div class="mb-3">
+                    <img
+                        src="{{this.profileImage}}"
+                        alt="{{this.name}}"
+                        class="img-fluid rounded"
+                        style="max-height: 150px; object-fit: cover;"
+                    >
+                </div>
+                {{/if}}
+
+                <h5 class="mb-2">
+                    {{this.name}}
+                </h5>
+
+                <p class="mb-1">
+                    <strong>Pedidos:</strong> {{this.ordersCount}}
+                </p>
+
+                <p class="mb-2">
+                    <strong>Estado:</strong>
+                    {{#if this.isActive}}
+                        <span class="text-success">Activo</span>
+                    {{else}}
+                        <span class="text-danger">Inactivo</span>
+                    {{/if}}
+                </p>
+
+                <div class="d-flex justify-content-center mt-2">
+
+                    <form action="/commerce/status/{{this._id}}" method="post">
+
+                        <input
+                            type="hidden"
+                            name="status"
+                            value="{{#if this.isActive}}false{{else}}true{{/if}}"
+                        >
+
+                        <button
+                            type="submit"
+                            class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}"
+                            onclick="return confirm('¿Seguro que deseas cambiar el estado de este comercio?')"
+                        >
+                            {{#if this.isActive}}Inactivar{{else}}Activar{{/if}}
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {{/each}}
+
+    </div>
+
+    {{else}}
+
+    <div class="text-center mt-5">
+        <h3 class="text-muted">No hay comercios registrados</h3>
+    </div>
+
+    {{/if}}
+
+</div>
+```

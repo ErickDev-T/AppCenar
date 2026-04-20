@@ -4,11 +4,13 @@ import {
   getOrdersByCommerce
 } from "./orders.controller.js";
 
+
 import { unlink } from "node:fs/promises";
 import path from "node:path";
 import mongoose from "mongoose";
 import Commerce from "../models/CommerceModel.js";
 import Category from "../models/CategoryModel.js";
+import CommerceType from "../models/CommerceTypeModel.js";
 import Product from "../models/ProductModel.js";
 import { projectRoot } from "../utils/Paths.js";
 

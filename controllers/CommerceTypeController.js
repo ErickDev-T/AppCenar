@@ -2,137 +2,137 @@ import CommerceType from "../models/CommerceTypeModel.js";
 
 //#region GET
 
-export async function getCommerceType(req, res, next) 
-{
-    try
-    {
-        const result = await CommerceType.find({});
-        const comerceTypes = result || [];
-        
-        res.render("commerce-types/home", {
-            commerceTypesList: comerceTypes,
-            hasCommerceTypes: comerceTypes.length > 0,
+export async function getCommerceType(req, res, next) {
+    try {
+        const result = await CommerceType.find({}).lean();
+        const commerceTypes = result || [];
+
+        return res.render("commerceType/index", {
+            commerceTypesList: commerceTypes,
+            hasCommerceTypes: commerceTypes.length > 0,
+            layout: "admin-layout",
             "page-title": "Commerce Types Home"
-        })
-    }
-    catch (err)
-    {
+        });
+    } catch (err) {
         console.error("Error fetching commerce types:", err);
-        res.flash("error", "An error occurred while fetching commerce types.");
+
+        req.flash("error", "An error occurred while fetching commerce types.");
+        return res.redirect("/");
     }
 }
-//#endregion
 
+//#endregion
 
 //#region SAVE
 
-export async function getCommerceTypeSave(req, res, next)
-{
-    res.render("commerce-types/save", {
-        editMode: false, 
+export async function getCommerceTypeSave(req, res, next) {
+    return res.render("commerceType/save", {
+        editMode: false,
+        layout: "admin-layout",
         "page-title": "Add Commerce Type"
     });
 }
 
-export async function postCommerceTypeSave(req, res, next)
-{
+export async function postCommerceTypeSave(req, res, next) {
     const { name, description, icon } = req.body;
-    
-    try
-    {
-        await CommerceType.create({ name, description, icon });
-        res.flash("success", "Commerce type saved successfully.");
-        res.redirect("/commerce-types");
-    }
-    catch (err)
-    {
+
+    try {
+        await CommerceType.create({
+            name,
+            description,
+            icon
+        });
+
+        req.flash("success", "Commerce type saved successfully.");
+        return res.redirect("/commerceType");
+    } catch (err) {
         console.error("Error saving commerce type:", err);
-        res.flash("error", "An error occurred while saving the commerce type.");
+
+        req.flash("error", "An error occurred while saving the commerce type.");
+        return res.redirect("/commerceType/save");
     }
 }
 
 //#endregion
-
 
 //#region UPDATE
 
-export async function getCommerceTypeEdit(req, res, next)
-{
+export async function getCommerceTypeEdit(req, res, next) {
     const id = req.params.id;
-    try
-    {
-        const commerceType = await CommerceType.findOne({ _id: id }).lean();
 
-        if(!commerceType) 
-        {
-            res.flash("error", "Commerce type not found.");
-            return res.redirect("/commerce-types");
+    try {
+        const commerceType = await CommerceType.findById(id).lean();
+
+        if (!commerceType) {
+            req.flash("error", "Commerce type not found.");
+            return res.redirect("/commerceType");
         }
 
-        res.render("commerce-types/save", {
-        editMode: true,
-        commerceType: commerceType, 
-        "page-title": `Edit Commerce Type ${commerceType.name}`
-    });
-    }catch(err)
-    {
+        return res.render("commerceType/save", {
+            editMode: true,
+            commerceType: commerceType,
+            layout: "admin-layout",
+            "page-title": `Edit Commerce Type ${commerceType.name}`
+        });
+    } catch (err) {
         console.error("Error fetching commerce type for edit:", err);
-        res.flash("error", "An error occurred while fetching the commerce type for edit.");
+
+        req.flash("error", "An error occurred while fetching the commerce type for edit.");
+        return res.redirect("/commerceType");
     }
-    
 }
 
+export async function postCommerceTypeEdit(req, res, next) {
+    const { id, name, description, icon } = req.body;
 
-export async function postCommerceTypeEdit(req, res, next)
-{
-    const { name, description, icon, id } = req.body;
-    
-    try
-    {
-        const commerceType = await CommerceType.findOne({ _id: id }).lean();
+    try {
+        const commerceType = await CommerceType.findById(id).lean();
 
-        if(!commerceType) 
-        {
-            res.flash("error", "Commerce type not found.");
-            return res.redirect("/commerce-types");
+        if (!commerceType) {
+            req.flash("error", "Commerce type not found.");
+            return res.redirect("/commerceType");
         }
 
-        await CommerceType.findByIdAndUpdate(id, { name, description, icon });
-        res.flash("success", "Commerce type updated successfully.");
-        res.redirect("/commerce-types");
+        await CommerceType.findByIdAndUpdate(id, {
+            name,
+            description,
+            icon
+        });
 
-    }
-    catch (err)
-    {
-        console.error("Error saving commerce type:", err);
-        res.flash("error", "An error occurred while saving the commerce type.");
+        req.flash("success", "Commerce type updated successfully.");
+        return res.redirect("/commerceType");
+    } catch (err) {
+        console.error("Error updating commerce type:", err);
+
+        req.flash("error", "An error occurred while updating the commerce type.");
+        return res.redirect(`/commerceType/edit/${req.body.id}`);
     }
 }
 
 //#endregion
 
-
 //#region DELETE
 
-export async function postCommerceTypeDelete(req, res, next)
-{
+export async function postCommerceTypeDelete(req, res, next) {
     const id = req.params.id;
-    try
-    {
-        const commerceType = await CommerceType.findOne({ _id: id }).lean();
 
-        if(!commerceType) 
-        {
-            res.flash("error", "Commerce type not found.");
-            return res.redirect("/commerce-types");
+    try {
+        const commerceType = await CommerceType.findById(id).lean();
+
+        if (!commerceType) {
+            req.flash("error", "Commerce type not found.");
+            return res.redirect("/commerceType");
         }
 
-        await CommerceType.deleteOne({ _id: id });
-    }
-    catch(err)
-    {
+        await CommerceType.findByIdAndDelete(id);
+
+        req.flash("success", "Commerce type deleted successfully.");
+        return res.redirect("/commerceType");
+    } catch (err) {
         console.error("Error deleting commerce type:", err);
-        res.flash("error", "An error occurred while deleting the commerce type.");
+
+        req.flash("error", "An error occurred while deleting the commerce type.");
+        return res.redirect("/commerceType");
     }
 }
 

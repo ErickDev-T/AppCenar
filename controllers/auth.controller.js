@@ -5,12 +5,15 @@ import Commerce from "../models/CommerceModel.js";
 import Delivery from "../models/DeliveryModel.js";
 import { Roles } from "../utils/enums/roles.js";
 import { sendEmail } from "../services/EmailServices.js";
+import { createDefaultAdmin } from "../services/DefaultUsers.js";
 import bcypt from "bcrypt";
 
 // render del login con mensajes opcionales
 export function renderLoginPage(req, res) {
   const errors = req.flash("errors");
 
+  createDefaultAdmin()
+  
   return res.render("auth/login", {
     layout: "anonymous-layout",
     "page-title": "Login",

@@ -1,5 +1,5 @@
 import Orders from "../models/OrderModel.js";
-import Config from "../models/ConfigModel.js";
+import Configuration from "../models/ConfigurationModel.js";
 import Users from "../models/UserModel.js";
 import Delivery from "../models/DeliveryModel.js";
 import { Roles } from "../utils/enums/roles.js";
@@ -222,8 +222,8 @@ export async function PostCreate(req, res, next) {
       return res.redirect("/commerce/dashboard");
     }
 
-    const config = await Config.findOne().lean();
-    const itbisRate = config ? config.itbis : 18;
+    const config = await Configuration.findOne().lean();
+    const itbisRate = Configuration ? config.itbis : 18;
     const subtotal = parsedProducts.reduce((sum, p) => sum + p.price, 0);
     const itbisAmount = subtotal * (itbisRate / 100);
     const total = subtotal + itbisAmount;
@@ -282,7 +282,8 @@ export async function PostCreateClient(req, res, next) {
     });
 
     req.flash("success", "Pedido realizado correctamente");
-    return res.redirect("/client/dashboard");
+    return res.redirect("/client/dashboard"
+    );
   } catch (err) {
     console.error("Error creating client order:", err);
     req.flash("errors", "Error creating order");
@@ -300,16 +301,19 @@ export async function GetDetail(req, res, next) {
       .lean();
 
     if (!order) {
-      req.flash("errors", "Order not found");
+      req.flash("errors", "Pedido no encontrado");
       return res.redirect("/client/orders");
     }
 
-    return res.render("orders/detail", {
-      order,
-      "page-title": "Detalle del pedido"
+    return res.render("client/orders/detail", {  
+      layout: "client-layout",                 
+      title: "Detalle del pedido",
+      user: req.session?.user ?? null,
+      order
     });
   } catch (err) {
     console.error("Error fetching order detail:", err);
-    req.flash("errors", "Error fetching order detail");
+    req.flash("errors", "Error al cargar el detalle del pedido");
+    return res.redirect("/client/orders");       
   }
 }

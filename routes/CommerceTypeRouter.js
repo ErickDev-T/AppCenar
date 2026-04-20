@@ -12,14 +12,14 @@ import
 
 const router = express.Router();
 
-router.get('/commerceType', getCommerceType);
+router.get('/', getCommerceType);
 
-router.get('/commerceType/save', getCommerceTypeSave);
-router.post('/commerceType/save', postCommerceTypeSave);
+router.get('/save', getCommerceTypeSave);
+router.post('/save', postCommerceTypeSave);
 
-router.get('/commerceType/edit/:id', getCommerceTypeEdit);
-router.post('/commerceType/edit', postCommerceTypeEdit);
+router.get('/edit/:id', getCommerceTypeEdit);
+router.post('/edit', postCommerceTypeEdit);
 
-router.post('/commerceType/delete', postCommerceTypeDelete);
+router.post('/delete/:id', postCommerceTypeDelete);
 
 export default router;

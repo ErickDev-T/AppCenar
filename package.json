@@ -15,15 +15,17 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon app.js",
-    "start": "node app.js",
-    "qa": "cross-env NODE_ENV=qa nodemon app.js",
-    "prod": "node app.js",
-    "seed:commerce-type": "node scripts/seed-commerce-type.js",
-    "seed:test-orders": "node scripts/seed-test-orders.js",
-    "migrate:deliveries": "node scripts/migrate-delivery-to-separate-collection.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+
+  "dev": "nodemon app.js",
+  "start": "nodemon app.js",
+  "qa": "cross-env NODE_ENV=qa nodemon app.js",
+  "prod": "cross-env NODE_ENV=production node app.js",
+  "seed:commerce-type": "node scripts/seed-commerce-type.js",
+  "seed:test-orders": "node scripts/seed-test-orders.js",
+  "seed:admin-user": "node scripts/seed-admin-user.js",
+  "migrate:deliveries": "node scripts/migrate-delivery-to-separate-collection.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
   "dependencies": {
     "bcrypt": "^6.0.0",
     "connect-flash": "^0.1.1",
