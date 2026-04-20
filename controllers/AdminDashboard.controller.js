@@ -1,6 +1,6 @@
 import Order from "../models/OrderModel.js";
 import Commerce from "../models/CommerceModel.js";
-import Users from "../models/UserModel.js";
+import Users from "../models/DeliveryModel.js";
 import { Roles } from "../utils/enums/roles.js";
 
 export async function getHomeDashboard(req, res, next)
