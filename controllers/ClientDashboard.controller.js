@@ -41,7 +41,7 @@ export async function postStatusClient(req, res, next) {
         : "Cliente desactivado correctamente."
     );
 
-    return res.redirect("AdminClient/index");
+    return res.redirect("/AdminClient");
   } catch (error) {
     console.error("Error updating client status:", error);
 

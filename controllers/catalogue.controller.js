@@ -1,7 +1,7 @@
 import Commerce from "../models/CommerceModel.js";
 import Product from "../models/ProductModel.js";
 import { getAddressesByUser } from "./address.controller.js";
-import Config from "../models/ConfigModel.js";
+import Configuration from "../models/ConfigurationModel.js";
 
 function getClientViewModel(req, title) {
   return {
@@ -20,7 +20,7 @@ export async function getCatalogue(req, res) {
       Product.find({ commerceId })
         .populate("categoryId")
         .lean(),
-      Config.findOne().lean()
+      Configuration.findOne().lean()
     ]);
 
     if (!commerce) {
@@ -141,7 +141,7 @@ export async function getCheckout(req, res) {
     const [commerce, addresses, config] = await Promise.all([
       Commerce.findById(commerceId).lean(),
       getAddressesByUser(req.session.user._id),
-      Config.findOne().lean()
+      Configuration.findOne().lean()
     ]);
 
     if (!commerce) {
@@ -193,7 +193,7 @@ export async function postCheckout(req, res) {
   try {
     const [commerce, config] = await Promise.all([
       Commerce.findById(commerceId).lean(),
-      Config.findOne().lean()
+      Configuration.findOne().lean()
     ]);
 
     if (!commerce) {

@@ -8,4 +8,5 @@ const router = express.Router();
 router.get('/', getClientsDashboard);
 router.post('/status/:id', postStatusClient);
 
+
 export default router;

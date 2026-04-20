@@ -1,4 +1,4 @@
-import Users from "../models/UserModel.js";
+import Users from "../models/DeliveryModel.js";
 import { Roles } from "../utils/enums/roles.js";
 import Orders from "../models/OrderModel.js";
 

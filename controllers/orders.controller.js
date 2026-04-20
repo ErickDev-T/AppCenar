@@ -1,5 +1,5 @@
 import Orders from "../models/OrderModel.js";
-import Config from "../models/ConfigModel.js";
+import Configuration from "../models/ConfigurationModel.js";
 import Users from "../models/UserModel.js";
 import Delivery from "../models/DeliveryModel.js";
 import { Roles } from "../utils/enums/roles.js";
@@ -222,8 +222,8 @@ export async function PostCreate(req, res, next) {
       return res.redirect("/commerce/dashboard");
     }
 
-    const config = await Config.findOne().lean();
-    const itbisRate = config ? config.itbis : 18;
+    const config = await Configuration.findOne().lean();
+    const itbisRate = Configuration ? config.itbis : 18;
     const subtotal = parsedProducts.reduce((sum, p) => sum + p.price, 0);
     const itbisAmount = subtotal * (itbisRate / 100);
     const total = subtotal + itbisAmount;

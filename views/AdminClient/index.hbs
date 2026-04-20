@@ -43,13 +43,13 @@
 
                 <div class="d-flex justify-content-center mt-2">
 
-                    <form action="/AdminClient/status/{{this._id}}" method="post">
+                    <form action="/AdminClient/status/{{this._id}}" method="post"
+                        onsubmit="return confirm('Seguro que deseas cambiar el estado de este cliente?')">
 
                         <input type="hidden" name="status" value="{{#if this.isActive}}false{{else}}true{{/if}}">
 
                         <button type="submit"
-                            class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}"
-                            onclick="return confirm('¿Seguro que deseas cambiar el estado de este cliente?')">
+                            class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}">
                             {{#if this.isActive}}Inactivar{{else}}Activar{{/if}}
                         </button>
 
