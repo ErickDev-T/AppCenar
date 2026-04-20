@@ -7,7 +7,7 @@ export async function getConfigurations(req, res, next) {
     const result = await Configuration.find({}).lean();
     const configurations = result || [];
 
-    res.render("configurations/index", {
+    res.render("configurations/Index", {
       configurationList: configurations,
       hasconfiguration: configurations.length > 0,
       "layout" : "admin-layout",
@@ -26,7 +26,7 @@ export async function getConfigurations(req, res, next) {
 
 export async function getConfigurationSave(req, res, next) {
   try {
-    res.render("configurations/save", {
+    res.render("configurations/Save", {
       editMode: false,
       layout: "admin-layout",
       "page-title": "Add Configuration",
@@ -69,7 +69,7 @@ export async function getConfigurationEdit(req, res, next) {
       return res.redirect("/configurations");
     }
 
-    res.render("configurations/save", {
+    res.render("configurations/Save", {
       editMode: true,
       configuration,
       layout: "admin-layout",
