@@ -32,7 +32,7 @@ export async function getAdminDashboard(req, res, next) {
 
         const admins = result || [];
 
-        return res.render("Admin/index", {
+        return res.render("Admin/Index", {
             adminList: admins,
             hasAdmin: admins.length > 0,
             layout: "admin-layout",
@@ -51,7 +51,7 @@ export async function getAdminDashboard(req, res, next) {
 //#region SAVE
 
 export async function getAdminSave(req, res, next) {
-    return res.render("Admin/save", {
+    return res.render("Admin/Save", {
         editMode: false,
         formData: {},
         layout: "admin-layout",
@@ -121,7 +121,7 @@ export async function postAdminSave(req, res, next) {
         }
 
         if (errors.length > 0) {
-            return res.render("Admin/save", {
+            return res.render("Admin/Save", {
                 editMode: false,
                 formData,
                 errors,
@@ -142,7 +142,7 @@ export async function postAdminSave(req, res, next) {
     } catch (error) {
         console.error("Error creando administrador:", error);
 
-        return res.render("Admin/save", {
+        return res.render("Admin/Save", {
             editMode: false,
             formData,
             errors: ["Ocurrió un error creando el administrador."],
@@ -170,7 +170,7 @@ export async function getAdminEdit(req, res, next) {
             return res.redirect("/Admin");
         }
 
-        return res.render("Admin/save", {
+        return res.render("Admin/Save", {
             editMode: true,
             admin,
             layout: "admin-layout",
@@ -263,7 +263,7 @@ export async function postAdminEdit(req, res, next) {
         }
 
         if (errors.length > 0) {
-            return res.render("Admin/save", {
+            return res.render("Admin/Save", {
                 editMode: true,
                 admin: {
                     _id: id,
