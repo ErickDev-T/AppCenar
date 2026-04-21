@@ -9,7 +9,7 @@
   <div class="table-responsive">
     <table class="table table-sm table-striped align-middle">
       <thead>
-        <tr role="link" tabindex="0" style="cursor: pointer;" onclick="window.location.href='/delivery/orders/{{id}}'" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='/delivery/orders/{{id}}'; }">
+        <tr>
           <th>Logo</th>
           <th>Estado</th>
           <th>Comercio</th>
@@ -21,7 +21,13 @@
       </thead>
       <tbody>
         {{#each ordersList}}
-        <tr>
+        <tr
+          role="link"
+          tabindex="0"
+          style="cursor: pointer;"
+          onclick="window.location.href='/delivery/orders/{{id}}'"
+          onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='/delivery/orders/{{id}}'; }"
+        >
           <td>
             {{#if commerceLogoUrl}}
             <img
