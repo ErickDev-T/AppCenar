@@ -1,4 +1,4 @@
-<div class="container mt-4">
+﻿<div class="container mt-4">
 
     <div class="row mb-4">
         <div class="col-12">
@@ -25,11 +25,11 @@
                 </p>
 
                 <p class="text-center mb-1">
-                    <strong>Teléfono:</strong> {{this.phone}}
+                    <strong>TelÃ©fono:</strong> {{this.phone}}
                 </p>
 
                 <p class="text-center mb-1">
-                    <strong>Órdenes asignadas:</strong> {{this.ordersCount}}
+                    <strong>Pedidos entregados:</strong> {{this.ordersCount}}
                 </p>
 
                 <p class="text-center mb-2">
@@ -44,7 +44,7 @@
 
                 <div class="d-flex justify-content-center mt-2">
 
-                    <form action="/delivery/status/{{this._id}}" method="post">
+                    <form action="/AdminDelivery/status/{{this._id}}" method="post">
 
                         <input
                             type="hidden"
@@ -55,7 +55,7 @@
                         <button
                             type="submit"
                             class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}"
-                            onclick="return confirm('¿Seguro que deseas cambiar el estado de este delivery?')"
+                            onclick="return confirm('Â¿Seguro que deseas cambiar el estado de este delivery?')"
                         >
                             {{#if this.isActive}}
                                 Inactivar
