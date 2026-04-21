@@ -5,6 +5,7 @@ import
     getCommerceTypeSave, 
     postCommerceTypeSave, 
     getCommerceTypeEdit, 
+    getCommerceTypeDelete,
     postCommerceTypeEdit,
     postCommerceTypeDelete 
 
@@ -21,6 +22,7 @@ router.post('/save', uploadCommerceTypeIcon, postCommerceTypeSave);
 router.get('/edit/:id', getCommerceTypeEdit);
 router.post('/edit', uploadCommerceTypeIcon, postCommerceTypeEdit);
 
+router.get('/delete/:id', getCommerceTypeDelete);
 router.post('/delete/:id', postCommerceTypeDelete);
 
 export default router;

@@ -5,6 +5,8 @@ import { Roles } from '../utils/enums/roles.js';
 
 const router = express.Router();
 
+router.use(requireAuth, requireRole(Roles.ADMIN));
+
 router.get('/', getClientsDashboard);
 router.post('/status/:id', postStatusClient);
 

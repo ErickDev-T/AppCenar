@@ -345,6 +345,33 @@ export async function postCommerceTypeEdit(req, res, next) {
 
 //#region DELETE
 
+export async function getCommerceTypeDelete(req, res, next) {
+  const id = req.params.id;
+
+  try {
+    const [commerceType, commercesCount] = await Promise.all([
+      CommerceType.findById(id).lean(),
+      Commerce.countDocuments({ commerceType: id })
+    ]);
+
+    if (!commerceType) {
+      req.flash("error", "Commerce type not found.");
+      return res.redirect("/commerceType");
+    }
+
+    return res.render("commerceType/delete", {
+      commerceType,
+      commercesCount,
+      layout: "admin-layout",
+      "page-title": `Delete Commerce Type ${commerceType.name}`
+    });
+  } catch (err) {
+    console.error("Error loading commerce type delete confirmation:", err);
+    req.flash("error", "An error occurred while loading delete confirmation.");
+    return res.redirect("/commerceType");
+  }
+}
+
 export async function postCommerceTypeDelete(req, res, next) {
   const id = req.params.id;
 
@@ -356,6 +383,7 @@ export async function postCommerceTypeDelete(req, res, next) {
       return res.redirect("/commerceType");
     }
 
+    await Commerce.deleteMany({ commerceType: id });
     await CommerceType.findByIdAndDelete(id);
     await removeStoredCommerceTypeIcon(commerceType.icon);
 
