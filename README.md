@@ -13,6 +13,5 @@ erick.tejada.inpha@gmail.com
 12345678
 
 admin
-
 Admin@gmail.com
 admin123
