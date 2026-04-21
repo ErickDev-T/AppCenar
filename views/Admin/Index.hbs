@@ -44,13 +44,16 @@
                 </p>
 
                 <div class="d-flex justify-content-between mt-2">
-
-                    <a href="/admin/edit/{{this._id}}" class="btn btn-primary btn-sm">
+                    {{#if this.canEdit}}
+                    <a href="/Admin/edit/{{this._id}}" class="btn btn-primary btn-sm">
                         Editar
                     </a>
+                    {{else}}
+                    <span class="text-muted small align-self-center">Tu cuenta</span>
+                    {{/if}}
 
                     {{#if this.canToggleStatus}}
-                    <form action="/admin/status/{{this._id}}" method="post">
+                    <form action="/Admin/status/{{this._id}}" method="post">
 
                         <input type="hidden" name="isActive" value="{{#if this.isActive}}false{{else}}true{{/if}}">
 
@@ -63,8 +66,6 @@
                         </button>
 
                     </form>
-                    {{else}}
-                    <span class="text-muted small align-self-center">Tu cuenta</span>
                     {{/if}}
 
                 </div>
