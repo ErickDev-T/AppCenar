@@ -17,6 +17,10 @@ function hashPassword(plainPassword) {
 
 export async function getAdminDashboard(req, res, next) {
     try {
+        const loggedUserId = req.session?.user?._id
+            ? String(req.session.user._id)
+            : null;
+
         const result = await Users.find(
             { role: Roles.ADMIN },
             {
@@ -30,7 +34,10 @@ export async function getAdminDashboard(req, res, next) {
             }
         ).lean();
 
-        const admins = result || [];
+        const admins = (result || []).map((admin) => ({
+            ...admin,
+            canToggleStatus: !(loggedUserId && String(admin._id) === loggedUserId)
+        }));
 
         return res.render("Admin/Index", {
             adminList: admins,

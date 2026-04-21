@@ -26,7 +26,13 @@
           <a href="/client/commerces/{{this._id}}" class="text-decoration-none">
             <div class="card h-100 text-center shadow-sm border rounded-3 p-2">
               <div class="card-body p-2">
-                <img src="/Images/profileImages/{{this.icon}}" alt="{{this.name}}" class="img-fluid mb-2" width="48" height="48" />
+                {{#if this.iconUrl}}
+                <img src="{{this.iconUrl}}" alt="{{this.name}}" class="img-fluid mb-2" width="48" height="48" />
+                {{else}}
+                {{#if this.iconClass}}
+                <i class="{{this.iconClass}} d-block mb-2" style="font-size: 2rem;"></i>
+                {{/if}}
+                {{/if}}
                 <p class="small fw-semibold text-dark mb-0">{{this.description}}</p>
               </div>
             </div>

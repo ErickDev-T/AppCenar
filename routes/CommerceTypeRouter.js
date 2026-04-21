@@ -9,16 +9,17 @@ import
     postCommerceTypeDelete 
 
 } from '../controllers/CommerceTypeController.js';
+import { uploadCommerceTypeIcon } from "../middlewares/upload.middleware.js";
 
 const router = express.Router();
 
 router.get('/', getCommerceType);
 
 router.get('/save', getCommerceTypeSave);
-router.post('/save', postCommerceTypeSave);
+router.post('/save', uploadCommerceTypeIcon, postCommerceTypeSave);
 
 router.get('/edit/:id', getCommerceTypeEdit);
-router.post('/edit', postCommerceTypeEdit);
+router.post('/edit', uploadCommerceTypeIcon, postCommerceTypeEdit);
 
 router.post('/delete/:id', postCommerceTypeDelete);
 

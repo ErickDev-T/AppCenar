@@ -27,9 +27,64 @@ function getClientViewModel(req, title) {
   };
 }
 
+function resolveImageUrl(fileName, fallbackPrefix) {
+  if (!fileName || typeof fileName !== "string") return null;
+
+  const normalized = fileName.trim().replace(/\\/g, "/");
+  if (!normalized) return null;
+
+  if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+    return normalized;
+  }
+
+  if (normalized.startsWith("/")) {
+    return normalized;
+  }
+
+  if (normalized.startsWith("public/")) {
+    return `/${normalized.slice("public/".length)}`;
+  }
+
+  if (normalized.startsWith("Images/")) {
+    return `/${normalized}`;
+  }
+
+  return `${fallbackPrefix}/${normalized}`;
+}
+
+function isCssIconClass(iconValue) {
+  if (!iconValue || typeof iconValue !== "string") return false;
+
+  const normalized = iconValue.trim();
+  if (!normalized) return false;
+
+  const hasPathLikeChars = /[\\/]/.test(normalized);
+  const hasFileExtension = /\.[a-z0-9]+$/i.test(normalized);
+
+  return !hasPathLikeChars && !hasFileExtension && /(fa-|bi-|\bbi\b)/i.test(normalized);
+}
+
 export async function getDashboard(req, res) {
   try {
-    const commerceTypes = await CommerceType.find().lean();
+    const rawCommerceTypes = await CommerceType.find().lean();
+    const commerceTypes = (rawCommerceTypes || []).map((type) => {
+      const rawIcon = typeof type.icon === "string" ? type.icon.trim() : "";
+
+      if (isCssIconClass(rawIcon)) {
+        return {
+          ...type,
+          iconClass: rawIcon,
+          iconUrl: null
+        };
+      }
+
+      return {
+        ...type,
+        iconClass: null,
+        iconUrl: resolveImageUrl(rawIcon, "/Images/commerceTypeIcons")
+      };
+    });
+
     return res.render("client/dashboard/index", {
       ...getClientViewModel(req, "Inicio"),
       commerceTypes,

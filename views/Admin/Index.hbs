@@ -49,6 +49,7 @@
                         Editar
                     </a>
 
+                    {{#if this.canToggleStatus}}
                     <form action="/admin/status/{{this._id}}" method="post">
 
                         <input type="hidden" name="isActive" value="{{#if this.isActive}}false{{else}}true{{/if}}">
@@ -62,6 +63,9 @@
                         </button>
 
                     </form>
+                    {{else}}
+                    <span class="text-muted small align-self-center">Tu cuenta</span>
+                    {{/if}}
 
                 </div>
 

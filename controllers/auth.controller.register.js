@@ -155,12 +155,7 @@ export async function registerCommerce(req, res) {
         `
       });
     } catch (emailError) {
-      // En desarrollo permitimos continuar sin proveedor de email para no bloquear el registro local.
-      if (process.env.NODE_ENV === "development") {
-        await Commerce.findByIdAndUpdate(createdUserId, { isActive: true, activateToken: null });
-      } else {
-        throw emailError;
-      }
+      throw emailError;
     }
 
     return res.redirect("/user/login?registered=1");

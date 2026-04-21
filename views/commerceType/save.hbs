@@ -13,7 +13,15 @@
 
                 <div class="card-body">
 
-                    <form action="/commerceType/{{#if editMode}}edit{{else}}save{{/if}}" method="post">
+                    {{#if errors.length}}
+                    <div class="alert alert-danger py-2">
+                        {{#each errors}}
+                        <p class="mb-0">{{this}}</p>
+                        {{/each}}
+                    </div>
+                    {{/if}}
+
+                    <form action="/commerceType/{{#if editMode}}edit{{else}}save{{/if}}" method="post" enctype="multipart/form-data">
 
                         <div class="mb-3">
                             <label class="form-label">Nombre:</label>
@@ -21,28 +29,44 @@
                                    class="form-control"
                                    name="name"
                                    required
-                                   value="{{#if editMode}}{{commerceType.name}}{{/if}}">
+                                   value="{{#if editMode}}{{commerceType.name}}{{else}}{{formData.name}}{{/if}}">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Descripción:</label>
+                            <label class="form-label">Descripcion:</label>
                             <textarea class="form-control"
                                       name="description"
                                       rows="3"
-                                      required>{{#if editMode}}{{commerceType.description}}{{/if}}</textarea>
+                                      required>{{#if editMode}}{{commerceType.description}}{{else}}{{formData.description}}{{/if}}</textarea>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Icono (clase CSS):</label>
-                            <input type="text"
+                            <label for="icon" class="form-label">Icono del tipo (imagen):</label>
+                            <input type="file"
+                                   id="icon"
                                    class="form-control"
                                    name="icon"
-                                   placeholder="Ej: fa-solid fa-store"
-                                   required
-                                   value="{{#if editMode}}{{commerceType.icon}}{{/if}}">
+                                   accept="image/*"
+                                   {{#unless editMode}}required{{/unless}}>
+                            {{#if editMode}}
+                            <small class="text-muted">Si no subes un icono nuevo, se mantiene el actual.</small>
+                            {{/if}}
                         </div>
 
                         {{#if editMode}}
+                        <div class="mb-3 text-center">
+                            <p class="mb-2 fw-semibold">Icono actual</p>
+                            {{#if commerceType.iconUrl}}
+                            <img src="{{commerceType.iconUrl}}" alt="{{commerceType.name}}" width="60" height="60" class="rounded"
+                                 style="object-fit: cover;">
+                            {{else}}
+                            {{#if commerceType.iconClass}}
+                            <i class="{{commerceType.iconClass}}" style="font-size: 48px;"></i>
+                            {{else}}
+                            <span class="text-muted">Sin icono actual</span>
+                            {{/if}}
+                            {{/if}}
+                        </div>
                         <input type="hidden" name="id" value="{{commerceType._id}}">
                         {{/if}}
 

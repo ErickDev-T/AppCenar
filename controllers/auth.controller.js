@@ -1,4 +1,4 @@
-import { randomBytes, scryptSync } from "node:crypto";
+﻿import { randomBytes, scryptSync } from "node:crypto";
 import { unlink } from "node:fs/promises";
 import Users from "../models/UserModel.js";
 import Commerce from "../models/CommerceModel.js";
@@ -85,7 +85,7 @@ export async function login(req, res) {
         case Roles.COMMERCE:
           return res.redirect("/commerce/dashboard");
         case Roles.ADMIN:
-          return res.redirect("/admin");
+          return res.redirect("/AdminDashboard");
         default:
           req.flash("errors", "user role is not recognized.");
           return res.redirect("/user/login");
@@ -120,8 +120,50 @@ async function verifyPassword(plainPassword, storedPassword) {
     return computedHash === savedHash;
   }
 
-  // Compatibilidad con posibles contraseñas guardadas en bcrypt
+  // Compatibilidad con posibles contraseÃ±as guardadas en bcrypt
   return bcypt.compare(plainPassword, storedPassword);
+}
+
+async function findAccountByIdentifier(identifier) {
+  const normalizedIdentifier = sanitizeText(identifier).toLowerCase();
+  if (!normalizedIdentifier) return null;
+
+  const [regularUser, commerceUser, deliveryUser] = await Promise.all([
+    Users.findOne({
+      $or: [{ email: normalizedIdentifier }, { username: normalizedIdentifier }]
+    }),
+    Commerce.findOne({ email: normalizedIdentifier }),
+    Delivery.findOne({
+      $or: [{ email: normalizedIdentifier }, { username: normalizedIdentifier }]
+    })
+  ]);
+
+  return regularUser || commerceUser || deliveryUser || null;
+}
+
+async function findAccountByResetToken({ token, userId = null }) {
+  if (!token) return null;
+
+  const models = [Users, Delivery, Commerce];
+  const baseFilter = {
+    resetToken: token,
+    resetTokenExpiration: { $gt: new Date() }
+  };
+
+  for (const Model of models) {
+    const filter = userId ? { ...baseFilter, _id: userId } : baseFilter;
+
+    try {
+      const account = await Model.findOne(filter);
+      if (account) return account;
+    } catch (ex) {
+      if (ex?.name !== "CastError") {
+        throw ex;
+      }
+    }
+  }
+
+  return null;
 }
 
 // arma url base para enlaces de activacion
@@ -366,7 +408,7 @@ export function logout(req, res) {
 export function renderForgotPasswordPage(req, res) {
   return res.render("auth/forgot-password", {
     layout: "anonymous-layout",
-    "page-title": "Restablecer contraseña",
+    "page-title": "Restablecer contraseÃ±a",
     formData: { identifier: "" },
     errors: [],
     success: false
@@ -382,7 +424,7 @@ export async function forgotPassword(req, res) {
   if (errors.length > 0) {
     return res.render("auth/forgot-password", {
       layout: "anonymous-layout",
-      "page-title": "Restablecer contraseña",
+      "page-title": "Restablecer contraseÃ±a",
       formData: { identifier },
       errors,
       success: false
@@ -390,9 +432,7 @@ export async function forgotPassword(req, res) {
   }
 
   try {
-    const user = await Users.findOne({
-      $or: [{ email: identifier }, { username: identifier }]
-    });
+    const user = await findAccountByIdentifier(identifier);
 
     // Si no existe igual mostramos success para no revelar si el usuario existe
     if (user) {
@@ -404,12 +444,12 @@ export async function forgotPassword(req, res) {
       const resetLink = `${getBaseUrl(req)}/user/reset-password/${resetToken}`;
       await sendEmail({
         to: user.email,
-        subject: "Restablece tu contraseña en AppCenar",
+        subject: "Restablece tu contraseÃ±a en AppCenar",
         html: `
           <h2>Hola, ${user.name}</h2>
-          <p>Recibimos una solicitud para restablecer tu contraseña.</p>
+          <p>Recibimos una solicitud para restablecer tu contraseÃ±a.</p>
           <p>Haz click en el siguiente enlace para continuar:</p>
-          <p><a href="${resetLink}">Restablecer contraseña</a></p>
+          <p><a href="${resetLink}">Restablecer contraseÃ±a</a></p>
           <p>Este enlace expira en 1 hora.</p>
         `
       });
@@ -417,7 +457,7 @@ export async function forgotPassword(req, res) {
 
     return res.render("auth/forgot-password", {
       layout: "anonymous-layout",
-      "page-title": "Restablecer contraseña",
+      "page-title": "Restablecer contraseÃ±a",
       formData: { identifier: "" },
       errors: [],
       success: true
@@ -426,7 +466,7 @@ export async function forgotPassword(req, res) {
     console.error("Error en forgot password", ex);
     return res.render("auth/forgot-password", {
       layout: "anonymous-layout",
-      "page-title": "Restablecer contraseña",
+      "page-title": "Restablecer contraseÃ±a",
       formData: { identifier },
       errors: ["No se pudo procesar la solicitud."],
       success: false
@@ -436,9 +476,8 @@ export async function forgotPassword(req, res) {
 export async function renderResetPasswordPage(req, res) {
   const token = sanitizeText(req.params.token);
 
-  const user = await Users.findOne({
-    resetToken: token,
-    resetTokenExpiration: { $gt: new Date() }
+  const user = await findAccountByResetToken({
+    token
   });
 
   if (!user) {
@@ -450,7 +489,7 @@ export async function renderResetPasswordPage(req, res) {
 
   return res.render("auth/reset-password", {
     layout: "anonymous-layout",
-    "page-title": "Nueva contraseña",
+    "page-title": "Nueva contraseÃ±a",
     passwordToken: token,
     userId: user._id,
     errors: []
@@ -472,7 +511,7 @@ export async function resetPassword(req, res) {
   if (errors.length > 0) {
     return res.render("auth/reset-password", {
       layout: "anonymous-layout",
-      "page-title": "Nueva contraseña",
+      "page-title": "Nueva contraseÃ±a",
       passwordToken: token,
       userId,
       errors
@@ -480,10 +519,9 @@ export async function resetPassword(req, res) {
   }
 
   try {
-    const user = await Users.findOne({
-      _id: userId,
-      resetToken: token,
-      resetTokenExpiration: { $gt: new Date() }
+    const user = await findAccountByResetToken({
+      token,
+      userId
     });
 
     if (!user) {
@@ -503,10 +541,11 @@ export async function resetPassword(req, res) {
     console.error("Error resetting password", ex);
     return res.render("auth/reset-password", {
       layout: "anonymous-layout",
-      "page-title": "Nueva contraseña",
+      "page-title": "Nueva contraseÃ±a",
       passwordToken: token,
       userId,
       errors: ["No se pudo restablecer la contrasena."]
     });
   }
 }
+

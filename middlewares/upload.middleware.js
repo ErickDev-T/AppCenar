@@ -21,7 +21,9 @@ function buildStorage(relativePath) {
 
 const profileImageStorage = buildStorage(["public", "Images", "profileImages"]);
 const productImageStorage = buildStorage(["public", "Images", "products"]);
+const commerceTypeIconStorage = buildStorage(["public", "Images", "commerceTypeIcons"]);
 
 //se resive un solo archivo dond en el formularo se llama profileImage
 export const uploadProfileImage = multer({ storage: profileImageStorage }).single("profileImage");
 export const uploadProductImage = multer({ storage: productImageStorage }).single("productImage");
+export const uploadCommerceTypeIcon = multer({ storage: commerceTypeIconStorage }).single("icon");

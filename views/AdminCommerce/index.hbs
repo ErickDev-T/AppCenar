@@ -14,51 +14,45 @@
 
         <div class="col-md-4 mb-3">
 
-            <div class="card shadow-sm p-3 text-center">
+            <div class="card shadow-sm p-3">
 
-                {{#if this.profileImage}}
-                <div class="mb-3">
-                    <img
-                        src="{{this.profileImage}}"
-                        alt="{{this.name}}"
-                        class="img-fluid rounded"
-                        style="max-height: 150px; object-fit: cover;"
-                    >
+                {{#if this.profileImageUrl}}
+                <div class="mb-3 text-center">
+                    <img src="{{this.profileImageUrl}}" alt="{{this.name}}" class="img-fluid rounded"
+                        style="max-height: 150px; object-fit: cover;">
                 </div>
                 {{/if}}
 
-                <h5 class="mb-2">
+                <h5 class="mb-3 text-center">
                     {{this.name}}
                 </h5>
 
-                <p class="mb-1">
-                    <strong>Pedidos:</strong> {{this.ordersCount}}
-                </p>
+                <div class="mb-2">
+                    <p class="mb-1"><strong>Pedidos:</strong> {{this.ordersCount}}</p>
+                    <p class="mb-1"><strong>Telefono:</strong> {{#if this.phone}}{{this.phone}}{{else}}-{{/if}}</p>
+                    <p class="mb-1"><strong>Hora apertura:</strong> {{#if this.openingTime}}{{this.openingTime}}{{else}}-{{/if}}</p>
+                    <p class="mb-1"><strong>Hora cierre:</strong> {{#if this.closingTime}}{{this.closingTime}}{{else}}-{{/if}}</p>
+                    <p class="mb-1"><strong>Correo:</strong> {{#if this.email}}{{this.email}}{{else}}-{{/if}}</p>
+                </div>
 
                 <p class="mb-2">
                     <strong>Estado:</strong>
                     {{#if this.isActive}}
-                        <span class="text-success">Activo</span>
+                    <span class="text-success">Activo</span>
                     {{else}}
-                        <span class="text-danger">Inactivo</span>
+                    <span class="text-danger">Inactivo</span>
                     {{/if}}
                 </p>
 
                 <div class="d-flex justify-content-center mt-2">
 
-                    <form action="/commerce/status/{{this._id}}" method="post">
+                    <form action="/AdminCommerce/status/{{this._id}}" method="post">
 
-                        <input
-                            type="hidden"
-                            name="status"
-                            value="{{#if this.isActive}}false{{else}}true{{/if}}"
-                        >
+                        <input type="hidden" name="status" value="{{#if this.isActive}}false{{else}}true{{/if}}">
 
-                        <button
-                            type="submit"
+                        <button type="submit"
                             class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}"
-                            onclick="return confirm('¿Seguro que deseas cambiar el estado de este comercio?')"
-                        >
+                            onclick="return confirm('Seguro que deseas cambiar el estado de este comercio?')">
                             {{#if this.isActive}}Inactivar{{else}}Activar{{/if}}
                         </button>
 
