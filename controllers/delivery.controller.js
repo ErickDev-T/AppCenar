@@ -45,6 +45,10 @@ function sanitizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function isValidPhone(phone) {
+  return /^\d{7,15}$/.test(phone);
+}
+
 async function removeUploadedFile(filePath) {
   if (!filePath) return;
 
@@ -320,6 +324,9 @@ export async function postProfile(req, res) {
     if (!formData.name) errors.push("El nombre es obligatorio.");
     if (!formData.lastName) errors.push("El apellido es obligatorio.");
     if (!formData.phone) errors.push("El telefono es obligatorio.");
+    if (formData.phone && !isValidPhone(formData.phone)) {
+      errors.push("El telefono solo debe contener numeros y tener entre 7 y 15 digitos.");
+    }
 
     if (errors.length > 0) {
       await removeUploadedFile(req.file?.path);

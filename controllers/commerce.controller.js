@@ -55,6 +55,10 @@ function sanitizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function isValidPhone(phone) {
+  return /^\d{7,15}$/.test(phone);
+}
+
 function getSessionCommerceId(req) {
   return req.session?.user?._id || req.session?.user?.id || null;
 }
@@ -308,6 +312,9 @@ export async function postProfile(req, res) {
     const errors = [];
 
     if (!formData.phone) errors.push("El telefono es obligatorio.");
+    if (formData.phone && !isValidPhone(formData.phone)) {
+      errors.push("El telefono solo debe contener numeros y tener entre 7 y 15 digitos.");
+    }
     if (!formData.email) errors.push("El correo es obligatorio.");
     if (!formData.openingTime) errors.push("La hora de apertura es obligatoria.");
     if (!formData.closingTime) errors.push("La hora de cierre es obligatoria.");

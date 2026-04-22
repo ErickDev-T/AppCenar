@@ -52,7 +52,7 @@
 
         <div class="col-12 col-md-6">
           <label for="phone" class="form-label mb-1">Telefono</label>
-          <input id="phone" name="phone" type="text" class="form-control commerce-input" value="{{formData.phone}}" placeholder="Telefono" aria-label="Telefono" required />
+          <input id="phone" name="phone" type="tel" class="form-control commerce-input" value="{{formData.phone}}" placeholder="Telefono" aria-label="Telefono" inputmode="numeric" pattern="[0-9]{7,15}" maxlength="15" required />
         </div>
 
         <div class="col-12 col-md-6">

@@ -193,13 +193,16 @@
 
         <div class="col-12">
           <input
-            type="text"
+            type="tel"
             class="form-control profile-input"
             id="phone"
             name="phone"
             value="{{formData.phone}}"
             placeholder="Telefono"
             aria-label="Telefono"
+            inputmode="numeric"
+            pattern="[0-9]{7,15}"
+            maxlength="15"
             required
           />
         </div>

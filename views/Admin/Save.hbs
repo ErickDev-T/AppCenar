@@ -83,10 +83,13 @@
           <label class="form-label mb-1" for="phone">Telefono</label>
           <input
             id="phone"
-            type="text"
+            type="tel"
             class="form-control admin-input"
             name="phone"
             required
+            inputmode="numeric"
+            pattern="[0-9]{7,15}"
+            maxlength="15"
             value="{{#if editMode}}{{admin.phone}}{{else}}{{formData.phone}}{{/if}}"
           />
         </div>

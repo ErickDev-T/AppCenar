@@ -176,11 +176,14 @@
           <input
             id="phone"
             name="phone"
-            type="text"
+            type="tel"
             class="form-control delivery-input"
             value="{{formData.phone}}"
             placeholder="Telefono"
             aria-label="Telefono"
+            inputmode="numeric"
+            pattern="[0-9]{7,15}"
+            maxlength="15"
             required
           />
         </div>

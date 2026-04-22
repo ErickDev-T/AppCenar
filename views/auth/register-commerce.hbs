@@ -147,10 +147,13 @@
           <input
             id="telefono"
             name="telefono"
-            type="text"
+            type="tel"
             class="form-control commerce-input"
             value="{{formData.telefono}}"
-            placeholder="809-000-0000"
+            placeholder="8090000000"
+            inputmode="numeric"
+            pattern="[0-9]{7,15}"
+            maxlength="15"
             required
           />
         </div>

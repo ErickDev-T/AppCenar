@@ -6,6 +6,10 @@ function sanitizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function isValidPhone(phone) {
+  return /^\d{7,15}$/.test(phone);
+}
+
 function hashPassword(plainPassword) {
   const salt = randomBytes(16).toString("hex");
   const hashedPassword = scryptSync(plainPassword, salt, 64).toString("hex");
@@ -95,6 +99,9 @@ export async function postAdminSave(req, res, next) {
   if (!formData.email) errors.push("El correo es obligatorio.");
   if (!formData.cedula) errors.push("La cedula es obligatoria.");
   if (!formData.phone) errors.push("El telefono es obligatorio.");
+  if (formData.phone && !isValidPhone(formData.phone)) {
+    errors.push("El telefono solo debe contener numeros y tener entre 7 y 15 digitos.");
+  }
   if (!password) errors.push("La contrasena es obligatoria.");
   if (!confirmPassword) errors.push("Debes confirmar la contrasena.");
 
@@ -211,6 +218,9 @@ export async function postAdminEdit(req, res, next) {
   if (!formData.email) errors.push("El correo es obligatorio.");
   if (!formData.cedula) errors.push("La cedula es obligatoria.");
   if (!formData.phone) errors.push("El telefono es obligatorio.");
+  if (formData.phone && !isValidPhone(formData.phone)) {
+    errors.push("El telefono solo debe contener numeros y tener entre 7 y 15 digitos.");
+  }
   if (!password) errors.push("La contrasena es obligatoria.");
   if (!confirmPassword) errors.push("Debes confirmar la contrasena.");
 

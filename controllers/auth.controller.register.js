@@ -10,6 +10,10 @@ import { sendEmail } from "../services/EmailServices.js";
 function sanitizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
+
+function isValidPhone(phone) {
+  return /^\d{7,15}$/.test(phone);
+}
 // genera hash de password con salt
 function hashPassword(plainPassword) {
   const salt = randomBytes(16).toString("hex");
@@ -77,6 +81,9 @@ export async function registerCommerce(req, res) {
   // validaciones basicas del formulario
   if (!formData.nombre) errors.push("El nombre del comercio es obligatorio.");
   if (!formData.telefono) errors.push("El telefono es obligatorio.");
+  if (formData.telefono && !isValidPhone(formData.telefono)) {
+    errors.push("El telefono solo debe contener numeros y tener entre 7 y 15 digitos.");
+  }
   if (!formData.correo) errors.push("El correo es obligatorio.");
   if (!formData.horaApertura) errors.push("La hora de apertura es obligatoria.");
   if (!formData.horaCierre) errors.push("La hora de cierre es obligatoria.");
