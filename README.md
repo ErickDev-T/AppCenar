@@ -1,5 +1,5 @@
 
-clientes
+##clientes
 
 erickytm2222@gmail.com
 pass: 12345678
@@ -10,11 +10,13 @@ pass: gumballs
 yeyskaira1@gmail.com
 pass: 12345678
 
-delivery
+##delivery
+
 erickjtm2222@gmail.com
 12345678
 
-comercio
+##comercios
+
 leordanito@gmail.com
 12345678
 
