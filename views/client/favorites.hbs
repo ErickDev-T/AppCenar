@@ -123,12 +123,16 @@
           <article class="favorite-item">
             <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3">
               <a href="/client/catalogue/{{this.commerceId._id}}" class="flex-shrink-0">
-                {{#if this.commerceId.profileImage}}
-                  <img
-                    src="/Images/profileImages/{{this.commerceId.profileImage}}"
-                    alt="Logo de {{this.commerceId.name}}"
-                    class="favorite-logo"
-                  />
+                {{#if this.commerceId.logoUrl}}
+                  <div class="favorite-placeholder d-flex align-items-center justify-content-center">
+                    <img
+                      src="{{this.commerceId.logoUrl}}"
+                      alt="Logo de {{this.commerceId.name}}"
+                      class="favorite-logo"
+                      onerror="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');"
+                    />
+                    <i class="bi bi-shop d-none"></i>
+                  </div>
                 {{else}}
                   <div class="favorite-placeholder d-flex align-items-center justify-content-center">
                     <i class="bi bi-shop"></i>

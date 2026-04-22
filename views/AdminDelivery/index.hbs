@@ -10,9 +10,21 @@
         {{#each deliveriesList}}
           <article class="admin-item">
             <div class="d-flex gap-3 align-items-start mb-3">
-              <div class="admin-icon d-flex align-items-center justify-content-center flex-shrink-0">
-                <i class="bi bi-truck fs-4"></i>
-              </div>
+              {{#if this.profileImageUrl}}
+                <div class="admin-placeholder d-flex align-items-center justify-content-center flex-shrink-0">
+                  <img
+                    src="{{this.profileImageUrl}}"
+                    alt="Foto de {{this.name}} {{this.lastName}}"
+                    class="admin-logo"
+                    onerror="this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');"
+                  />
+                  <i class="bi bi-truck fs-4 d-none"></i>
+                </div>
+              {{else}}
+                <div class="admin-icon d-flex align-items-center justify-content-center flex-shrink-0">
+                  <i class="bi bi-truck fs-4"></i>
+                </div>
+              {{/if}}
               <div style="min-width: 0;">
                 <h2 class="h6 fw-bold text-dark mb-1 text-break">{{this.name}} {{this.lastName}}</h2>
                 <p class="text-muted small mb-0 text-break">{{this.email}}</p>

@@ -140,6 +140,7 @@ export async function getCommercesByTypeView(req, res) {
 
     const commercesConFavorito = commerces.map(c => ({
       ...c,
+      logoUrl: resolveImageUrl(c.profileImage, "/Images/profileImages"),
       esFavorito: favoriteCommerceIds.has(String(c._id))
     }));
 
@@ -371,11 +372,20 @@ export async function getAddresses(req, res) {
 export async function getFavorites(req, res) {
   try {
     const favorites = await getFavoritesByClient(req.session.user._id);
+    const favoritesList = favorites.map((favorite) => ({
+      ...favorite,
+      commerceId: favorite.commerceId
+        ? {
+            ...favorite.commerceId,
+            logoUrl: resolveImageUrl(favorite.commerceId.profileImage, "/Images/profileImages")
+          }
+        : favorite.commerceId
+    }));
 
     return res.render("client/favorites", {
       ...getClientViewModel(req, "Mis favoritos"),
-      favoritesList: favorites,
-      hasFavorites: favorites.length > 0,
+      favoritesList,
+      hasFavorites: favoritesList.length > 0,
       errors: req.flash("errors"),
       success: req.flash("success")
     });

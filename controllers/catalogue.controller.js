@@ -11,6 +11,31 @@ function getClientViewModel(req, title) {
   };
 }
 
+function resolveImageUrl(fileName, fallbackPrefix) {
+  if (!fileName || typeof fileName !== "string") return null;
+
+  const normalized = fileName.trim().replace(/\\/g, "/");
+  if (!normalized) return null;
+
+  if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+    return normalized;
+  }
+
+  if (normalized.startsWith("/")) {
+    return normalized;
+  }
+
+  if (normalized.startsWith("public/")) {
+    return `/${normalized.slice("public/".length)}`;
+  }
+
+  if (normalized.startsWith("Images/")) {
+    return `/${normalized}`;
+  }
+
+  return `${fallbackPrefix}/${normalized}`;
+}
+
 export async function getCatalogue(req, res) {
   const { commerceId } = req.params;
 
@@ -35,9 +60,7 @@ export async function getCatalogue(req, res) {
       if (!byCategory[catName]) byCategory[catName] = [];
       byCategory[catName].push({
         ...product,
-        imageUrl: product.image
-          ? `/Images/products/${product.image}`
-          : null,
+        imageUrl: resolveImageUrl(product.image, "/Images/products"),
         priceLabel: Number(product.price).toLocaleString("es-DO", {
           style: "currency",
           currency: "DOP"
@@ -68,9 +91,7 @@ export async function getCatalogue(req, res) {
       ...getClientViewModel(req, commerce.name),
       commerce: {
         ...commerce,
-        logoUrl: commerce.profileImage
-          ? `/Images/profileImages/${commerce.profileImage}`
-          : null
+        logoUrl: resolveImageUrl(commerce.profileImage, "/Images/profileImages")
       },
       categories,
       hasCategories: categories.length > 0,
@@ -158,9 +179,7 @@ export async function getCheckout(req, res) {
       ...getClientViewModel(req, "Confirmar pedido"),
       commerce: {
         ...commerce,
-        logoUrl: commerce.profileImage
-          ? `/Images/profileImages/${commerce.profileImage}`
-          : null
+        logoUrl: resolveImageUrl(commerce.profileImage, "/Images/profileImages")
       },
       addresses,
       hasAddresses: addresses.length > 0,
