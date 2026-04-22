@@ -1,29 +1,34 @@
-<div class="container mt-4">
-  <div class="row d-flex justify-content-center">
-    <div class="col-12 col-sm-8 col-md-6">
-      <div class="card shadow">
-        <div class="card-header bg-danger text-light text-center">
-          <h3 class="h5 mb-0">Eliminar Tipo de Comercio</h3>
+<section class="admin-shell">
+  <div class="admin-panel admin-panel-narrow">
+    <div class="mb-4">
+      <h1 class="admin-title">Eliminar tipo de comercio</h1>
+      <p class="admin-subtitle mb-0 mt-2">Esta accion tambien afectara comercios asociados a este tipo.</p>
+    </div>
+
+    <div class="admin-card mb-3">
+      <div class="d-flex gap-3 align-items-start">
+        <div class="admin-placeholder d-flex align-items-center justify-content-center flex-shrink-0">
+          <i class="bi bi-exclamation-triangle fs-4"></i>
         </div>
-
-        <div class="card-body">
-          <p class="mb-3">
-            &iquest;Est&aacute; seguro que desea eliminar este tipo de comercio y todos los comercios asociado a este tipo?
+        <div style="min-width: 0;">
+          <h2 class="h6 fw-bold text-dark mb-2 text-break">{{commerceType.name}}</h2>
+          <p class="text-muted mb-2">
+            Seguro que deseas eliminar este tipo de comercio y todos los comercios asociados?
           </p>
-
-          <div class="mb-3">
-            <div><strong>Tipo:</strong> {{commerceType.name}}</div>
-            <div><strong>Comercios asociados:</strong> {{commercesCount}}</div>
-          </div>
-
-          <div class="d-flex justify-content-end gap-2">
-            <a href="/commerceType" class="btn btn-secondary">Cancelar</a>
-            <form action="/commerceType/delete/{{commerceType._id}}" method="post">
-              <button type="submit" class="btn btn-danger">Aceptar</button>
-            </form>
-          </div>
+          <p class="admin-meta mb-0">Comercios asociados: {{commercesCount}}</p>
         </div>
       </div>
     </div>
+
+    <div class="d-flex flex-column flex-sm-row gap-2">
+      <a href="/commerceType" class="btn btn-outline-secondary admin-back flex-fill">
+        <i class="bi bi-arrow-left me-1"></i>Cancelar
+      </a>
+      <form action="/commerceType/delete/{{commerceType._id}}" method="post" class="flex-fill">
+        <button type="submit" class="btn btn-danger admin-danger w-100">
+          <i class="bi bi-trash3 me-1"></i>Aceptar
+        </button>
+      </form>
+    </div>
   </div>
-</div>
+</section>

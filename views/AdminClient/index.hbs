@@ -1,76 +1,55 @@
-<div class="container mt-4">
-
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="text-center">Dashboard de Clientes</h2>
-        </div>
+<section class="admin-shell">
+  <div class="admin-panel">
+    <div class="mb-4">
+      <h1 class="admin-title">Clientes</h1>
+      <p class="admin-subtitle mb-0 mt-2">Listado de clientes registrados en AppCenar.</p>
     </div>
 
     {{#if hasClients}}
-
-    <div class="row">
-
+      <div class="admin-grid">
         {{#each clientsList}}
-
-        <div class="col-md-4 mb-3">
-
-            <div class="card shadow-sm p-3">
-
-                <h5 class="text-center">
-                    {{this.name}} {{this.lastName}}
-                </h5>
-
-                <p class="text-center mb-1">
-                    <strong>Email:</strong> {{this.email}}
-                </p>
-
-                <p class="text-center mb-1">
-                    <strong>Teléfono:</strong> {{this.phone}}
-                </p>
-
-                <p class="text-center mb-1">
-                    <strong>Pedidos:</strong> {{this.ordersCount}}
-                </p>
-
-                <p class="text-center mb-2">
-                    <strong>Estado:</strong>
-                    {{#if this.isActive}}
-                    <span class="text-success">Activo</span>
-                    {{else}}
-                    <span class="text-danger">Inactivo</span>
-                    {{/if}}
-                </p>
-
-                <div class="d-flex justify-content-center mt-2">
-
-                    <form action="/AdminClient/status/{{this._id}}" method="post"
-                        onsubmit="return confirm('Seguro que deseas cambiar el estado de este cliente?')">
-
-                        <input type="hidden" name="status" value="{{#if this.isActive}}false{{else}}true{{/if}}">
-
-                        <button type="submit"
-                            class="btn btn-sm {{#if this.isActive}}btn-danger{{else}}btn-success{{/if}}">
-                            {{#if this.isActive}}Inactivar{{else}}Activar{{/if}}
-                        </button>
-
-                    </form>
-
-                </div>
-
+          <article class="admin-item">
+            <div class="d-flex gap-3 align-items-start mb-3">
+              <div class="admin-icon d-flex align-items-center justify-content-center flex-shrink-0">
+                <i class="bi bi-person fs-4"></i>
+              </div>
+              <div style="min-width: 0;">
+                <h2 class="h6 fw-bold text-dark mb-1 text-break">{{this.name}} {{this.lastName}}</h2>
+                <p class="text-muted small mb-0 text-break">{{this.email}}</p>
+              </div>
             </div>
 
-        </div>
+            <div class="admin-divider pt-3">
+              <div class="d-flex justify-content-between gap-2 small mb-2">
+                <span>Telefono</span>
+                <strong class="text-break text-end">{{this.phone}}</strong>
+              </div>
+              <div class="d-flex justify-content-between gap-2 small mb-3">
+                <span>Pedidos</span>
+                <strong>{{this.ordersCount}}</strong>
+              </div>
+              <div class="d-flex justify-content-between align-items-center gap-2">
+                {{#if this.isActive}}
+                  <span class="admin-status admin-status-active">Activo</span>
+                {{else}}
+                  <span class="admin-status admin-status-inactive">Inactivo</span>
+                {{/if}}
 
+                <form action="/AdminClient/status/{{this._id}}" method="post" onsubmit="return confirm('Seguro que deseas cambiar el estado de este cliente?')">
+                  <input type="hidden" name="status" value="{{#if this.isActive}}false{{else}}true{{/if}}">
+                  <button type="submit" class="btn btn-sm {{#if this.isActive}}btn-outline-danger{{else}}btn-outline-success{{/if}} admin-action">
+                    {{#if this.isActive}}Inactivar{{else}}Activar{{/if}}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </article>
         {{/each}}
-
-    </div>
-
+      </div>
     {{else}}
-
-    <div class="text-center mt-5">
-        <h3 class="text-muted">No hay clientes registrados</h3>
-    </div>
-
+      <div class="admin-empty p-3" role="alert">
+        <i class="bi bi-info-circle me-1"></i>No hay clientes registrados.
+      </div>
     {{/if}}
-
-</div>
+  </div>
+</section>

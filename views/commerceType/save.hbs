@@ -1,94 +1,90 @@
-<div class="container mt-4">
-    <div class="row d-flex justify-content-center">
-
-        <div class="col-12 col-sm-6 col-md-5">
-
-            <div class="card shadow">
-
-                <div class="card-header bg-primary text-light text-center">
-                    <h3 class="h3">
-                        {{#if editMode}} Editar Tipo de Comercio {{else}} Crear Tipo de Comercio {{/if}}
-                    </h3>
-                </div>
-
-                <div class="card-body">
-
-                    {{#if errors.length}}
-                    <div class="alert alert-danger py-2">
-                        {{#each errors}}
-                        <p class="mb-0">{{this}}</p>
-                        {{/each}}
-                    </div>
-                    {{/if}}
-
-                    <form action="/commerceType/{{#if editMode}}edit{{else}}save{{/if}}" method="post" enctype="multipart/form-data">
-
-                        <div class="mb-3">
-                            <label class="form-label">Nombre:</label>
-                            <input type="text"
-                                   class="form-control"
-                                   name="name"
-                                   required
-                                   value="{{#if editMode}}{{commerceType.name}}{{else}}{{formData.name}}{{/if}}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Descripcion:</label>
-                            <textarea class="form-control"
-                                      name="description"
-                                      rows="3"
-                                      required>{{#if editMode}}{{commerceType.description}}{{else}}{{formData.description}}{{/if}}</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="icon" class="form-label">Icono del tipo (imagen):</label>
-                            <input type="file"
-                                   id="icon"
-                                   class="form-control"
-                                   name="icon"
-                                   accept="image/*"
-                                   {{#unless editMode}}required{{/unless}}>
-                            {{#if editMode}}
-                            <small class="text-muted">Si no subes un icono nuevo, se mantiene el actual.</small>
-                            {{/if}}
-                        </div>
-
-                        {{#if editMode}}
-                        <div class="mb-3 text-center">
-                            <p class="mb-2 fw-semibold">Icono actual</p>
-                            {{#if commerceType.iconUrl}}
-                            <img src="{{commerceType.iconUrl}}" alt="{{commerceType.name}}" width="60" height="60" class="rounded"
-                                 style="object-fit: cover;">
-                            {{else}}
-                            {{#if commerceType.iconClass}}
-                            <i class="{{commerceType.iconClass}}" style="font-size: 48px;"></i>
-                            {{else}}
-                            <span class="text-muted">Sin icono actual</span>
-                            {{/if}}
-                            {{/if}}
-                        </div>
-                        <input type="hidden" name="id" value="{{commerceType._id}}">
-                        {{/if}}
-
-                        <div class="d-flex justify-content-end">
-
-                            <a href="/commerceType" class="btn btn-warning me-2">
-                                Volver
-                            </a>
-
-                            <button type="submit" class="btn btn-primary">
-                                {{#if editMode}} Actualizar {{else}} Guardar {{/if}}
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        </div>
-
+<section class="admin-shell">
+  <div class="admin-panel admin-panel-narrow">
+    <div class="mb-4">
+      <h1 class="admin-title">
+        {{#if editMode}}Editar tipo de comercio{{else}}Crear tipo de comercio{{/if}}
+      </h1>
+      <p class="admin-subtitle mb-0 mt-2">Configura el nombre, descripcion e icono visible para clientes.</p>
     </div>
-</div>
+
+    {{#if errors.length}}
+      <div class="alert alert-danger py-2 mb-3" role="alert">
+        {{#each errors}}
+          <p class="mb-0">{{this}}</p>
+        {{/each}}
+      </div>
+    {{/if}}
+
+    <form action="/commerceType/{{#if editMode}}edit{{else}}save{{/if}}" method="post" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label class="form-label mb-1" for="name">Nombre</label>
+        <input
+          id="name"
+          type="text"
+          class="form-control admin-input"
+          name="name"
+          required
+          value="{{#if editMode}}{{commerceType.name}}{{else}}{{formData.name}}{{/if}}"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label mb-1" for="description">Descripcion</label>
+        <textarea
+          id="description"
+          class="form-control admin-input"
+          name="description"
+          rows="3"
+          required
+        >{{#if editMode}}{{commerceType.description}}{{else}}{{formData.description}}{{/if}}</textarea>
+      </div>
+
+      <div class="mb-3">
+        <label for="icon" class="form-label mb-1">Icono del tipo</label>
+        <input
+          type="file"
+          id="icon"
+          class="form-control admin-input"
+          name="icon"
+          accept="image/*"
+          {{#unless editMode}}required{{/unless}}
+        />
+        {{#if editMode}}
+          <small class="text-muted">Si no subes un icono nuevo, se mantiene el actual.</small>
+        {{/if}}
+      </div>
+
+      {{#if editMode}}
+        <div class="admin-card mb-3">
+          <div class="d-flex gap-3 align-items-center">
+            {{#if commerceType.iconUrl}}
+              <img src="{{commerceType.iconUrl}}" alt="{{commerceType.name}}" class="admin-logo flex-shrink-0" />
+            {{else}}
+              <div class="admin-placeholder d-flex align-items-center justify-content-center flex-shrink-0">
+                {{#if commerceType.iconClass}}
+                  <i class="{{commerceType.iconClass}} fs-4"></i>
+                {{else}}
+                  <i class="bi bi-tags fs-4"></i>
+                {{/if}}
+              </div>
+            {{/if}}
+            <div>
+              <div class="fw-semibold text-dark">Icono actual</div>
+              <div class="text-muted small">Se reemplazara solo si seleccionas una imagen nueva.</div>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" name="id" value="{{commerceType._id}}">
+      {{/if}}
+
+      <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
+        <a href="/commerceType" class="btn btn-outline-secondary admin-back flex-fill">
+          <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+        <button type="submit" class="admin-submit flex-fill">
+          <i class="bi bi-floppy me-1"></i>{{#if editMode}}Actualizar{{else}}Guardar{{/if}}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

@@ -1,54 +1,91 @@
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="text-center">Dashboard Administrativo</h2>
-        </div>
+<section class="admin-shell">
+  <div class="admin-panel">
+    <div class="mb-4">
+      <h1 class="admin-title">Dashboard administrativo</h1>
+      <p class="admin-subtitle mb-0 mt-2">Resumen general de actividad y usuarios.</p>
     </div>
 
-    <div class="row">
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm p-3 text-center border-primary">
-                <h5 class="mb-1">Pedidos (historico)</h5>
-                <h2 class="text-primary mb-0">{{totalOrders}}</h2>
-            </div>
+    <div class="admin-stat-grid">
+      <article class="admin-card admin-stat">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="admin-icon d-flex align-items-center justify-content-center">
+            <i class="bi bi-receipt fs-4"></i>
+          </div>
+          <h2 class="h6 fw-bold mb-0 text-dark">Pedidos historicos</h2>
         </div>
+        <div class="display-6 fw-bold text-dark">{{totalOrders}}</div>
+      </article>
 
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm p-3 text-center border-info">
-                <h5 class="mb-1">Pedidos de hoy</h5>
-                <h2 class="text-info mb-0">{{todayOrders}}</h2>
-            </div>
+      <article class="admin-card admin-stat">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="admin-icon d-flex align-items-center justify-content-center">
+            <i class="bi bi-calendar-check fs-4"></i>
+          </div>
+          <h2 class="h6 fw-bold mb-0 text-dark">Pedidos de hoy</h2>
         </div>
+        <div class="display-6 fw-bold text-dark">{{todayOrders}}</div>
+      </article>
 
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm p-3 text-center border-dark">
-                <h5 class="mb-1">Productos creados</h5>
-                <h2 class="text-dark mb-0">{{totalProducts}}</h2>
-            </div>
+      <article class="admin-card admin-stat">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="admin-icon d-flex align-items-center justify-content-center">
+            <i class="bi bi-box-seam fs-4"></i>
+          </div>
+          <h2 class="h6 fw-bold mb-0 text-dark">Productos creados</h2>
         </div>
+        <div class="display-6 fw-bold text-dark">{{totalProducts}}</div>
+      </article>
 
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm p-3 border-success">
-                <h5 class="text-center">Comercios</h5>
-                <p class="mb-1 text-center"><strong>Activos:</strong> {{activeCommerces}}</p>
-                <p class="mb-0 text-center"><strong>Inactivos:</strong> {{inactiveCommerces}}</p>
-            </div>
+      <article class="admin-card admin-stat">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="admin-icon d-flex align-items-center justify-content-center">
+            <i class="bi bi-shop fs-4"></i>
+          </div>
+          <h2 class="h6 fw-bold mb-0 text-dark">Comercios</h2>
         </div>
+        <div class="d-flex justify-content-between small mb-2">
+          <span>Activos</span>
+          <strong>{{activeCommerces}}</strong>
+        </div>
+        <div class="d-flex justify-content-between small">
+          <span>Inactivos</span>
+          <strong>{{inactiveCommerces}}</strong>
+        </div>
+      </article>
 
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm p-3 border-warning">
-                <h5 class="text-center">Clientes</h5>
-                <p class="mb-1 text-center"><strong>Activos:</strong> {{activeClients}}</p>
-                <p class="mb-0 text-center"><strong>Inactivos:</strong> {{inactiveClients}}</p>
-            </div>
+      <article class="admin-card admin-stat">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="admin-icon d-flex align-items-center justify-content-center">
+            <i class="bi bi-people fs-4"></i>
+          </div>
+          <h2 class="h6 fw-bold mb-0 text-dark">Clientes</h2>
         </div>
+        <div class="d-flex justify-content-between small mb-2">
+          <span>Activos</span>
+          <strong>{{activeClients}}</strong>
+        </div>
+        <div class="d-flex justify-content-between small">
+          <span>Inactivos</span>
+          <strong>{{inactiveClients}}</strong>
+        </div>
+      </article>
 
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm p-3 border-danger">
-                <h5 class="text-center">Delivery</h5>
-                <p class="mb-1 text-center"><strong>Activos:</strong> {{activeDeliveries}}</p>
-                <p class="mb-0 text-center"><strong>Inactivos:</strong> {{inactiveDeliveries}}</p>
-            </div>
+      <article class="admin-card admin-stat">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="admin-icon d-flex align-items-center justify-content-center">
+            <i class="bi bi-truck fs-4"></i>
+          </div>
+          <h2 class="h6 fw-bold mb-0 text-dark">Delivery</h2>
         </div>
+        <div class="d-flex justify-content-between small mb-2">
+          <span>Activos</span>
+          <strong>{{activeDeliveries}}</strong>
+        </div>
+        <div class="d-flex justify-content-between small">
+          <span>Inactivos</span>
+          <strong>{{inactiveDeliveries}}</strong>
+        </div>
+      </article>
     </div>
-</div>
+  </div>
+</section>
