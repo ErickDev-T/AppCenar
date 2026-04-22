@@ -4,9 +4,9 @@ export const validateGetEdit = [
   param("addressId")
     .trim()
     .notEmpty()
-    .withMessage("Address ID is required")
+    .withMessage("El ID de la direccion es obligatorio")
     .isMongoId()
-    .withMessage("Invalid address ID format")
+    .withMessage("El ID de la direccion no es valido")
     .escape(),
 ];
 
@@ -14,12 +14,12 @@ export const validatePostCreate = [
   body("Name")
     .trim()
     .notEmpty()
-    .withMessage("Name is required")
+    .withMessage("El nombre es obligatorio")
     .escape(),
   body("Description")
     .trim()
     .notEmpty()
-    .withMessage("Description is required")
+    .withMessage("La descripcion es obligatoria")
     .escape(),
 ];
 
@@ -27,19 +27,19 @@ export const validatePostEdit = [
   body("Name")
     .trim()
     .notEmpty()
-    .withMessage("Name is required")
+    .withMessage("El nombre es obligatorio")
     .escape(),
   body("Description")
     .trim()
     .notEmpty()
-    .withMessage("Description is required")
+    .withMessage("La descripcion es obligatoria")
     .escape(),
   body("AddressId")
     .trim()
     .notEmpty()
-    .withMessage("Address ID is required")
+    .withMessage("El ID de la direccion es obligatorio")
     .isMongoId()
-    .withMessage("Invalid address ID format")
+    .withMessage("El ID de la direccion no es valido")
     .escape(),
 ];
 
@@ -47,8 +47,8 @@ export const validateDelete = [
   body("AddressId")
     .trim()
     .notEmpty()
-    .withMessage("Address ID is required")
+    .withMessage("El ID de la direccion es obligatorio")
     .isMongoId()
-    .withMessage("Invalid address ID format")
+    .withMessage("El ID de la direccion no es valido")
     .escape(),
 ];

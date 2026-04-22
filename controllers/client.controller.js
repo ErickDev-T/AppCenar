@@ -4,7 +4,9 @@ import { getCommercesByType } from "./commerce.controller.js";
 import { getAddressesByUser } from "./address.controller.js";
 import { getFavoritesByClient } from "./favorite.controller.js";
 import { unlink } from "node:fs/promises";
+import path from "node:path";
 import Users from "../models/UserModel.js";
+import { projectRoot } from "../utils/Paths.js";
 
 // helper para eliminar archivos
 async function removeUploadedFile(filePath) {
@@ -50,6 +52,22 @@ function resolveImageUrl(fileName, fallbackPrefix) {
   }
 
   return `${fallbackPrefix}/${normalized}`;
+}
+
+function resolveProfileImagePath(fileName) {
+  if (!fileName || typeof fileName !== "string") return null;
+
+  const normalized = fileName.trim().replace(/\\/g, "/");
+  if (!normalized || normalized.startsWith("http://") || normalized.startsWith("https://")) {
+    return null;
+  }
+
+  if (normalized.startsWith("public/")) {
+    return path.join(projectRoot, ...normalized.split("/"));
+  }
+
+  const cleanFileName = path.basename(normalized);
+  return path.join(projectRoot, "public", "Images", "profileImages", cleanFileName);
 }
 
 function isCssIconClass(iconValue) {
@@ -144,9 +162,12 @@ export function getProfile(req, res) {
     formData: {
       name: user.name,
       lastName: user.lastName,
+      username: user.username,
+      email: user.email,
       phone: user.phone,
       profileImage: user.profileImage
     },
+    profileImageUrl: resolveImageUrl(user.profileImage, "/Images/profileImages"),
     errors: [],
     success: false
   });
@@ -159,6 +180,8 @@ export async function updateProfile(req, res) {
   const formData = {
     name: req.body.name?.trim() ?? "",
     lastName: req.body.lastName?.trim() ?? "",
+    username: user.username,
+    email: user.email,
     phone: req.body.phone?.trim() ?? "",
     profileImage: user.profileImage
   };
@@ -174,6 +197,7 @@ export async function updateProfile(req, res) {
     return res.render("client/profile", {
       ...getClientViewModel(req, "Mi perfil"),
       formData,
+      profileImageUrl: resolveImageUrl(formData.profileImage, "/Images/profileImages"),
       errors,
       success: false
     });
@@ -185,10 +209,12 @@ export async function updateProfile(req, res) {
       lastName: formData.lastName,
       phone: formData.phone
     };
+    const previousProfileImagePath = req.file?.filename
+      ? resolveProfileImagePath(user.profileImage)
+      : null;
 
     // reemplazo de imagen
     if (req.file?.filename) {
-      await removeUploadedFile(`uploads/${user.profileImage}`);
       updateData.profileImage = req.file.filename;
     }
 
@@ -198,16 +224,32 @@ export async function updateProfile(req, res) {
       { new: true }
     );
 
+    if (!updatedUser) {
+      await removeUploadedFile(req.file?.path);
+
+      return res.render("client/profile", {
+        ...getClientViewModel(req, "Mi perfil"),
+        formData,
+        profileImageUrl: resolveImageUrl(formData.profileImage, "/Images/profileImages"),
+        errors: ["No se encontro el usuario."],
+        success: false
+      });
+    }
+
     req.session.user = updatedUser;
+    await removeUploadedFile(previousProfileImagePath);
 
     return res.render("client/profile", {
       ...getClientViewModel(req, "Mi perfil"),
       formData: {
         name: updatedUser.name,
         lastName: updatedUser.lastName,
+        username: updatedUser.username,
+        email: updatedUser.email,
         phone: updatedUser.phone,
         profileImage: updatedUser.profileImage
       },
+      profileImageUrl: resolveImageUrl(updatedUser.profileImage, "/Images/profileImages"),
       errors: [],
       success: true
     });
@@ -220,6 +262,7 @@ export async function updateProfile(req, res) {
     return res.render("client/profile", {
       ...getClientViewModel(req, "Mi perfil"),
       formData,
+      profileImageUrl: resolveImageUrl(formData.profileImage, "/Images/profileImages"),
       errors: ["No se pudo actualizar el perfil."],
       success: false
     });
@@ -302,10 +345,19 @@ export async function getAddresses(req, res) {
       ...getClientViewModel(req, "Mis direcciones"),
       addressesList: addresses,
       hasAddresses: addresses.length > 0,
+      errors: req.flash("errors"),
+      success: req.flash("success")
     });
   } catch (err) {
     console.error("Error fetching addresses:", err);
     req.flash("errors", "Error al obtener las direcciones");
+    return res.status(500).render("client/addresses", {
+      ...getClientViewModel(req, "Mis direcciones"),
+      addressesList: [],
+      hasAddresses: false,
+      errors: req.flash("errors"),
+      success: req.flash("success")
+    });
   }
 }
 

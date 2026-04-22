@@ -25,7 +25,7 @@ router.post(
   requireAuth,
   requireRole(Roles.CLIENT),
   validatePostCreate,
-  handleValidationErrors("/client/addresses"),
+  handleValidationErrors("/address/create"),
   PostCreate
 );
 
