@@ -90,6 +90,7 @@
             inputmode="numeric"
             pattern="[0-9]{7,15}"
             maxlength="15"
+            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
             value="{{#if editMode}}{{admin.phone}}{{else}}{{formData.phone}}{{/if}}"
           />
         </div>

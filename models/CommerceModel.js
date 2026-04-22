@@ -16,7 +16,9 @@ const commerceSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
+    match: [/^\d{7,15}$/, "El telefono solo debe contener numeros y tener entre 7 y 15 digitos."]
   },
   password: {
     type: String,
